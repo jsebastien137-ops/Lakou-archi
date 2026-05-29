@@ -401,6 +401,57 @@
   <button id="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
 </div>
+  
+<!-- PAGE HOME -->
+<div id="page-home" class="page">
+
+  <!-- SLIDESHOW -->
+  <div class="slideshow" id="slideshow">
+    
+    <div class="slide active">
+
+       <div class="slide-overlay"></div>
+      <div class="slide-content">
+        <p class="slide-eyebrow">Cap-Haitien · 1820 · UNESCO</p>
+        <h2 class="slide-title">Citadelle Laferriere</h2>
+        <p class="slide-desc">La plus grande forteresse des Amériques. Construite par Henri Christophe pour défendre la nation haïtienne.</p>
+      </div>
+    </div>
+    <div class="slide">
+
+      <div class="slide-overlay"></div>
+      <div class="slide-content">
+        <p class="slide-eyebrow">Milot · XIXe siècle · Patrimoine</p>
+        <h2 class="slide-title">Eglise de Milot</h2>
+        <p class="slide-desc">Chef- d'œuvre architectural de style néoclassique, témoignage de la grandeur de l'époque royale haïtienne.</p>
+      </div>
+    </div>
+    <div class="slide">
+      
+      <div class="slide-overlay"></div>
+      <div class="slide-content">
+        <p class="slide-eyebrow">Milot · 1813 · Henri Christophe</p>
+        <h2 class="slide-title">Palais Sans-Souci</h2>
+        <p class="slide-desc">Ancienne résidence royale du roi Henri Christophe. Joyau de l'architecture néoclassique en Haïti.</p>
+      </div>
+    </div>
+    <div class="slide">
+
+      <div class="slide-overlay"></div>
+      <div class="slide-content">
+        <p class="slide-eyebrow">Port-au-Prince · 1891 · Hyppolite</p>
+        <h2 class="slide-title">Marché en Fer</h2>
+        <p class="slide-desc">Symbole de la modernité haïtienne de la fin du XIXe siècle. Architecture de fer remarquable en plein coeur de la capitale.</p>
+      </div>
+    </div>
+    <div class="slide-nav">
+      <span class="dot  active" onclick="goToSlide(0)"></span><span class="dot" onclick="goToSlide(1)"></span><span class="dot" onclick="goToSlide(2)"></span><span class="dot" onclick="goToSlide(3)"></span>
+    </div>
+    <div class="slide-arrows">
+      <button class="slide-arr" onclick="slidePrev()">‹</button>
+      <button class="slide-arr" onclick="slideNext()">›</button>
+    </div>
+  </div>
   <!-- STATS -->
 <div class="stats-bar">
   <div class="stat"><div class="stat-num" id="stat-projects">0</div><div class="stat-label">Projets archivés</div></div>
