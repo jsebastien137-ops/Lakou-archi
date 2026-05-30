@@ -526,8 +526,7 @@
   </div>
 
 <div class="ateliers-grid">
-
-  <div class="atelier-row" onclick="goToAteliers()">
+<div class="atelier-row" onclick="goToAteliers('sketches')">
     <div class="atelier-row-left">
       <span class="atelier-num">01.</span>
       <div>
@@ -541,8 +540,7 @@
     </div>
   </div>
 
-  <div class="atelier-row" onclick="goToAteliers('sketches')"
->
+  <div class="atelier-row" onclick="goToAteliers('conceptual')">
     <div class="atelier-row-left">
       <span class="atelier-num">02.</span>
       <div>
@@ -556,7 +554,7 @@
     </div>
   </div>
 
-  <div class="atelier-row" onclick="goToAteliers('conceptual')">
+  <div class="atelier-row" onclick="goToAteliers('plans')">
     <div class="atelier-row-left">
       <span class="atelier-num">03.</span>
       <div>
@@ -570,7 +568,7 @@
     </div>
   </div>
 
-  <div class="atelier-row" onclick="goToAteliers('plans')">
+  <div class="atelier-row" onclick="goToAteliers('evolution')">
     <div class="atelier-row-left">
       <span class="atelier-num">04.</span>
       <div>
@@ -584,7 +582,7 @@
     </div>
   </div>
 
-  <div class="atelier-row" onclick="goToAteliers('evolution')">
+  <div class="atelier-row" onclick="goToAteliers('validated')">
     <div class="atelier-row-left">
       <span class="atelier-num">05.</span>
       <div>
@@ -598,7 +596,7 @@
     </div>
   </div>
 
-  <div class="atelier-row" onclick="goToAteliers('validated')">
+  <div class="atelier-row" onclick="goToAteliers('final')">
     <div class="atelier-row-left">
       <span class="atelier-num">06.</span>
       <div>
@@ -612,7 +610,7 @@
     </div>
   </div>
 
-  <div class="atelier-row" onclick="goToAteliers('final')">
+  <div class="atelier-row" onclick="goToAteliers('artistic')">
     <div class="atelier-row-left">
       <span class="atelier-num">07.</span>
       <div>
@@ -626,7 +624,7 @@
     </div>
   </div>
 
-<div class="atelier-cta" onclick="currentUser ? navigateTo('explorer-ateliers') : navigateTo('login')">
+  <div class="atelier-cta" onclick="currentUser ? navigateTo('explorer-ateliers') : navigateTo('login')">
     <span>Découvrir tous les ateliers</span>
     <span class="atelier-cta-arrow">→</span>
   </div>
