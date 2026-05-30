@@ -417,8 +417,11 @@ function renderGrid(id, projects) {
     var studentId = p.student ? p.student.id : null;
     var studentHtml = studentId
       ? '<span class="project-card-student clickable" onclick="event.stopPropagation();openStudentGallery(\''+studentId+'\')">'+student+'</span>'
-      : '<span class="project-card-student">'+student+'</span>';
-    var year = p.academic_year || '';
+     : '<span class="project-card-student">'+student+'</span>';
+  var school = p.student ? p.student.school : null;
+var schoolBadge = school 
+  ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;">' + school + '</span>' 
+      var year = p.academic_year || '';
     var area = p.area ? p.area + ' m²' : '';
     var atelier = p.program_type || '';
     var likes = p.like_count || 0;
