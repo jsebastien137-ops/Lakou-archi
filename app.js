@@ -61,7 +61,7 @@ if (name === 'teachers') { loadTeachersHome(); }
   var grid = document.getElementById('home-projects-grid');
   if (!grid) { return; }
   var res = await sb.from('projects')
-    .select('*, student:profiles!student_id(id, full_name)')
+    .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
     .limit(6);
@@ -391,9 +391,12 @@ if (imgEl && p.cover_image_url) {
   } catch(e) { console.warn('loadVivante error:', e); }
 }
 async function loadPublicProjects() {
-  var res=await sb.from('projects').select('*, student:profiles!student_id(full_name), school:schools(name,abbreviation)').eq('status','approved').order('created_at',{ascending:false});
-  allPublicProjects=res.data||[];
-  renderGrid('public-projects-grid',allPublicProjects);
+  var res = await sb.from('projects')
+    .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+  allPublicProjects = res.data || [];
+  renderGrid('public-projects-grid', allPublicProjects);
 }
 
 function filterProjects(level,btn) {
@@ -405,6 +408,7 @@ function filterProjects(level,btn) {
 }
 
 function renderGrid(id, projects) {
+function renderGrid(id, projects) {
   var c = document.getElementById(id);
   if (!projects || projects.length === 0) {
     c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gris);font-size:0.85rem">Aucun projet disponible.</div>';
@@ -415,41 +419,41 @@ function renderGrid(id, projects) {
     var p = projects[i];
     var student = p.student ? (p.student.full_name || '-') : '-';
     var studentId = p.student ? p.student.id : null;
+    var school = p.student && p.student.school ? p.student.school : null;
+    var schoolBadge = school ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;margin-left:4px;">' + school + '</span>' : '';
     var studentHtml = studentId
-      ? '<span class="project-card-student clickable" onclick="event.stopPropagation();openStudentGallery(\''+studentId+'\')">'+student+'</span>'
-     : '<span class="project-card-student">'+student+'</span>';
-  
+      ? '<span class="project-card-student clickable" onclick="event.stopPropagation();openStudentGallery(\'' + studentId + '\')">' + student + '</span>' + schoolBadge
+      : '<span class="project-card-student">' + student + '</span>' + schoolBadge;
     var year = p.academic_year || '';
-    var area = p.area ? p.area + ' m²' : '';
+    var area = p.area ? p.area + ' m2' : '';
     var atelier = p.program_type || '';
     var likes = p.like_count || 0;
     var views = p.view_count || 0;
     var imgHtml = p.cover_image_url
-      ? '<img class="clickable" src="'+getWatermarkedUrl(p.cover_image_url, student)+'" draggable="false">'
-      : '<div class="project-card-placeholder">'+p.title.charAt(0)+'</div>';
-    var badge = p.level ? '<span class="project-card-badge">'+p.level+'</span>' : '';
-    html += '<div class="project-card" onclick="openProjectDetail('+JSON.stringify(p.id)+')">';
-    html += '<div class="project-card-img">'+imgHtml+badge+'</div>';
+      ? '<img class="clickable" src="' + getWatermarkedUrl(p.cover_image_url, student) + '" draggable="false">'
+      : '<div class="project-card-placeholder">' + p.title.charAt(0) + '</div>';
+    var badge = p.level ? '<span class="project-card-badge">' + p.level + '</span>' : '';
+    html += '<div class="project-card" onclick="openProjectDetail(' + JSON.stringify(p.id) + ')">';
+    html += '<div class="project-card-img">' + imgHtml + badge + '</div>';
     html += '<div class="project-card-body">';
-    
-   html += '<h3 class="project-card-title">'+p.title+'</h3>';
-    if (p.description) html += '<p class="project-card-desc" style="font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin:0.3rem 0 0.5rem;line-height:1.4;">' + p.description + '</p>';
+    html += '<h3 class="project-card-title">' + p.title + '</h3>';
+    if (p.description) { html += '<p class="project-card-desc" style="font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin:0.3rem 0 0.5rem;line-height:1.4;">' + p.description + '</p>'; }
     html += '<div class="project-card-meta-row">';
-    if (year) html += '<span class="project-card-meta-item">📅 '+year+'</span>';
-    if (area) html += '<span class="project-card-meta-item">📐 '+area+'</span>';
-    if (atelier) html += '<span class="project-card-meta-item">🏛️ '+atelier+'</span>';
+    if (year) { html += '<span class="project-card-meta-item">📅 ' + year + '</span>'; }
+    if (area) { html += '<span class="project-card-meta-item">📐 ' + area + '</span>'; }
+    if (atelier) { html += '<span class="project-card-meta-item">🏛️ ' + atelier + '</span>'; }
     html += '</div>';
     html += '<div class="project-card-footer">';
-    html += studentHtml; 
+    html += studentHtml;
     var isOwner = currentUser && p.student_id === currentUser.id;
-var isAdmin = currentProfile && currentProfile.role === 'admin';
+    var isAdmin = currentProfile && currentProfile.role === 'admin';
     html += '<div class="project-card-stats">';
-    html += '<span>👁 '+views+'</span>';
-    html += '<span>♥ '+likes+'</span>';
+    html += '<span>👁 ' + views + '</span>';
+    html += '<span>♥ ' + likes + '</span>';
     html += '</div></div>';
     if (isOwner || isAdmin) {
-  html += '<button class="project-delete-btn" onclick="event.stopPropagation();deleteProject(\''+p.id+'\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif;">🗑 Supprimer</button>';
-}
+      html += '<button class="project-delete-btn" onclick="event.stopPropagation();deleteProject(\'' + p.id + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif;">🗑 Supprimer</button>';
+    }
     html += '</div></div>';
   }
   c.innerHTML = html;
