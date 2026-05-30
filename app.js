@@ -408,7 +408,6 @@ function filterProjects(level,btn) {
 }
 
 function renderGrid(id, projects) {
-function renderGrid(id, projects) {
   var c = document.getElementById(id);
   if (!projects || projects.length === 0) {
     c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gris);font-size:0.85rem">Aucun projet disponible.</div>';
@@ -1310,14 +1309,7 @@ function openSettingsModal(type){
     alert('Profil public : visible par tous les utilisateurs connectés.');
   }
 }
-async function doDeleteAccount(){
-  if (!confirm('Supprimer définitivement ton compte ? Cette action est IRRÉVERSIBLE.')) return;
-  if (!confirm('Es-tu vraiment sûr ? Toutes tes publications seront supprimées.')) return;
-  await sb.from('profiles').delete().eq('id', currentUser.id);
-  await sb.auth.signOut();
-  toast('Compte supprimé.');
-  showPage('home');
-}
+
 
 // Restaurer thème au chargement
 if (localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); }
