@@ -288,22 +288,24 @@ if (e6) e6.textContent = res.data.bio || '';
 async function doRegister() {
   hideErr('register-error');
   var btn = document.getElementById('register-btn');
-  var name=document.getElementById('reg-name').value;
-  var email=document.getElementById('reg-email').value;
-  var password=document.getElementById('reg-password').value;
-  var role=document.getElementById('reg-role').value;
-  if (!name||!email||!password) { showErr('register-error','Remplissez tous les champs.'); return; }
-var cgu = document.getElementById('cgu-check');
-if (!cgu || !cgu.checked) { showErr('register-error','Vous devez accepter les conditions d\'utilisation.'); return; }
-  btn.disabled=true; btn.textContent='Inscription...';
+  var name = document.getElementById('reg-name').value;
+  var email = document.getElementById('reg-email').value;
+  var password = document.getElementById('reg-password').value;
+  var role = document.getElementById('reg-role').value;
+  var school = document.getElementById('reg-school') ? document.getElementById('reg-school').value.trim() || null : null; // ← AJOUTER
+  if (!name || !email || !password) { showErr('register-error', 'Remplissez tous les champs.'); return; }
+  var cgu = document.getElementById('cgu-check');
+  if (!cgu || !cgu.checked) { showErr('register-error', 'Vous devez accepter les conditions d\'utilisation.'); return; }
+  btn.disabled = true; btn.textContent = 'Inscription...';
   try {
-    var res = await sb.auth.signUp({email:email,password:password,options:{data:{full_name:name,role:role}}});
-    if (res.error) { showErr('register-error',res.error.message); btn.disabled=false; btn.textContent='Creer mon compte'; return; }
-    var s=document.getElementById('register-success');
-    s.textContent='Compte cree ! Vous pouvez maintenant vous connecter.';
+    var res = await sb.auth.signUp({email: email, password: password, options: {data: {full_name: name, role: role}}});
+    if (res.error) { showErr('register-error', res.error.message); btn.disabled = false; btn.textContent = 'Creer mon compte'; return; }
+    if (res.data && res.data.user && school) { await sb.from('profiles').update({ school: school }).eq('id', res.data.user.id); } // ← AJOUTER
+    var s = document.getElementById('register-success');
+    s.textContent = 'Compte cree ! Vous pouvez maintenant vous connecter.';
     s.classList.remove('hidden');
-    btn.disabled=false; btn.textContent='Creer mon compte';
-  } catch(e) { showErr('register-error','Erreur: '+e.message); btn.disabled=false; btn.textContent='Creer mon compte'; }
+    btn.disabled = false; btn.textContent = 'Creer mon compte';
+  } catch(e) { showErr('register-error', 'Erreur: ' + e.message); btn.disabled = false; btn.textContent = 'Creer mon compte'; }
 }
 
 async function doForgot() {
