@@ -1782,7 +1782,7 @@ img.clickable {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding: 1rem 0;
+  padding: 72px 1rem 1rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
