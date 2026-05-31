@@ -1012,60 +1012,63 @@ function carouselNav(postId, direction) {
   slides[next].style.display = 'block';
   if (counter) { counter.textContent = next + 1; }
 }
+function compressImage(file, maxWidthPx, qualite) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var ratio = Math.min(maxWidthPx / img.width, maxWidthPx / img.height, 1);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob) {
+          resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+        }, 'image/jpeg', qualite);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 async function doAtelierUploadMultiple(input) {
   var files = Array.from(input.files);
   if (!files.length || !currentUser || !currentAtelierType) { return; }
   if (files.length > 10) { toast('Maximum 10 images a la fois.', 'error'); return; }
-
-  // 1. Vérification taille totale avant tout envoi
   var totalSize = files.reduce(function(sum, f) { return sum + f.size; }, 0);
-  if (totalSize > 20 * 1024 * 1024) {
-    toast('Taille totale trop lourde. Maximum 20 MB pour le groupe.', 'error');
-    return;
-  }
+  if (totalSize > 20 * 1024 * 1024) { toast('Taille totale trop lourde. Maximum 20 MB pour le groupe.', 'error'); return; }
   var oversized = files.filter(function(f) { return f.size > 10 * 1024 * 1024; });
   if (oversized.length > 0) { toast('Un fichier depasse 10 MB.', 'error'); return; }
-
   toast('Upload en cours... (' + files.length + ' fichier' + (files.length > 1 ? 's' : '') + ')');
-
-  // 2. Upload sécurisé avec try/catch — succès seulement si tout est stocké
   var urls = [];
   try {
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      var ext = file.name.split('.').pop().toLowerCase();
+      if (file.type.startsWith('image/')) { file = await compressImage(file, 1920, 0.82); }
+      var ext = 'jpg';
       var path = 'ateliers/' + currentAtelierType + '/' + currentUser.id + '-' + Date.now() + '-' + i + '.' + ext;
       var up = await sb.storage.from('project-images').upload(path, file, { upsert: true });
       if (up.error) { throw new Error('Echec fichier ' + (i+1) + ': ' + up.error.message); }
       var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
       urls.push(url);
     }
-  } catch(e) {
-    toast('Erreur upload: ' + e.message, 'error');
-    return;
-  }
-
+  } catch(e) { toast('Erreur upload: ' + e.message, 'error'); return; }
   if (urls.length === 0) { toast('Aucun fichier uploade.', 'error'); return; }
-
-  // 3. Insertion avec vrai tableau JSON pour file_urls
   try {
     var res = await sb.from('chambre_posts').insert({
       chambre_type: currentAtelierType || 'sketches',
       author_id: currentUser.id,
       file_url: urls[0],
-      file_urls: urls, // tableau JSON réel — lu par le carrousel via post.file_urls
+      file_urls: urls,
       file_type: files[0].type,
       caption: null,
       like_count: 0
     });
     if (res.error) { throw new Error(res.error.message); }
-  } catch(e) {
-    toast('Erreur sauvegarde: ' + e.message, 'error');
-    return;
-  }
-
+  } catch(e) { toast('Erreur sauvegarde: ' + e.message, 'error'); return; }
   input.value = '';
-  // Succès affiché SEULEMENT ici — après confirmation Supabase
   toast('' + urls.length + ' image' + (urls.length > 1 ? 's' : '') + ' publiee' + (urls.length > 1 ? 's' : '') + ' !');
   await loadAtelierPosts(currentAtelierType);
 }
@@ -1076,12 +1079,13 @@ async function doAtelierUpload(input) {
   if (!currentAtelierType) { currentAtelierType = 'sketches'; }
   if (file.size > 10 * 1024 * 1024) { toast('Fichier trop lourd. Maximum 10 MB.', 'error'); return; }
   toast('Upload en cours...');
-  var ext = file.name.split('.').pop();
+  var isPDF = file.type === 'application/pdf';
+  if (!isPDF && file.type.startsWith('image/')) { file = await compressImage(file, 1920, 0.82); }
+  var ext = isPDF ? file.name.split('.').pop() : 'jpg';
   var path = 'ateliers/' + currentAtelierType + '/' + currentUser.id + '-' + Date.now() + '.' + ext;
   var up = await sb.storage.from('project-images').upload(path, file);
   if (up.error) { toast(up.error.message, 'error'); return; }
   var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
-  var isPDF = file.type === 'application/pdf';
   var res = await sb.from('chambre_posts').insert({
     chambre_type: currentAtelierType || 'sketches',
     author_id: currentUser.id,
@@ -1112,10 +1116,13 @@ async function doLikeAtelierPost(postId, btn) {
 }
 
 async function doDeleteAtelierPost(postId, fileUrl) {
-  if (!confirm('Supprimer cette publication ? Action irreversible.')) return;
-  await sb.from('chambre_posts').delete().eq('id', postId);
-  var path = fileUrl.split('/project-images/')[1];
-  if (path) await sb.storage.from('project-images').remove([path]);
+  if (!confirm('Supprimer cette publication ? Action irreversible.')) { return; }
+  var res = await sb.from('chambre_posts').delete().eq('id', postId);
+  if (res.error) { toast(res.error.message, 'error'); return; }
+  try {
+    var path = decodeURIComponent(fileUrl).split('/project-images/')[1];
+    if (path) { await sb.storage.from('project-images').remove([path]); }
+  } catch(e) { console.warn('storage delete:', e); }
   toast('Publication supprimee.');
   await loadAtelierPosts(currentAtelierType);
 }
