@@ -840,7 +840,7 @@ if (coverEl) {
 // Avant cette accolade fermante }, ajoute :
   await loadTechnicalDossier(projectId);
 }
-}
+
 // ═══════════════════════════════════════════════════════════════════
 // DOSSIER TECHNIQUE — Fonctions autonomes (préfixe td-)
 // ═══════════════════════════════════════════════════════════════════
