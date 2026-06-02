@@ -656,7 +656,8 @@ async function loadEditProject() {
     area.innerHTML='<div class="pending-card" style="background:#edf7ed;border-color:#a8d4a8"><p style="color:#2a6b2a">Projet approuve et publie.</p></div>';
   }
   await loadStages();
-    await loadProjectImages();
+await loadProjectImages();
+await loadLivretForm(); // ← AJOUT
 }
 async function loadStages() {
   var res=await sb.from('project_stages').select('*, images:stage_images(*)').eq('project_id',currentProjectId).order('order_index');
@@ -3498,3 +3499,303 @@ function requireAuth(callback, visitorAllowed) {
     function loadThemeFromProfile(profile) {
   // Reserve pour theme futur
 }
+// ================================================================
+// LAKOU-ARCHI — Livret Technique
+// Ajouter en fin de app.js
+// ================================================================
+
+var LIVRET_CATEGORIES = [
+  { key: 'plans',     label: '📐 Plans (par niveau)', multi: true  },
+  { key: 'coupes',    label: '✂️ Sections / Coupes',  multi: true  },
+  { key: 'facades',   label: '🏛 Façades',            multi: true  },
+  { key: 'structure', label: '🔩 Structure',          multi: true  },
+  { key: 'rendus',    label: '🎨 Rendus',             multi: true  },
+  { key: 'masse',     label: '🗺 Plan de masse',      multi: false }
+];
+
+// ---- Chargement du formulaire livret (edit-project) ----
+async function loadLivretForm() {
+  if (!currentProjectId) return;
+  var container = document.getElementById('livret-form-section');
+  if (!container) return;
+
+  var res = await sb.from('project_sheets')
+    .select('*').eq('project_id', currentProjectId)
+    .order('sheet_index');
+  var sheets = res.data || [];
+
+  var planCount = sheets.filter(function(s){ return s.category === 'plans'; }).length;
+  var defaultLvl = Math.max(planCount, 1);
+
+  var html = '<div class="livret-form-wrap">';
+  html += '<h3 class="livret-section-title">📋 Livret Technique — Dépôt des planches</h3>';
+
+  // Question niveaux
+  html += '<div class="livret-question-block">';
+  html += '<label class="livret-label">Combien de niveaux / étages comporte votre projet ?</label>';
+  html += '<select id="livret-niveaux-select" class="form-select livret-niveaux-select" onchange="onNiveauxChange(this.value)">';
+  for (var n = 1; n <= 5; n++) {
+    html += '<option value="' + n + '"' + (n === defaultLvl ? ' selected' : '') + '>' + n + (n > 1 ? ' niveaux' : ' niveau') + '</option>';
+  }
+  html += '</select></div>';
+
+  LIVRET_CATEGORIES.forEach(function(cat) {
+    var catSheets = sheets.filter(function(s){ return s.category === cat.key; });
+    var count = cat.multi ? defaultLvl : 1;
+
+    html += '<div class="livret-cat-section" id="livret-cat-' + cat.key + '">';
+    html += '<div class="livret-cat-title">' + cat.label + '</div>';
+    html += '<div class="livret-blocks-wrap" id="livret-blocks-' + cat.key + '">';
+    for (var i = 0; i < count; i++) {
+      html += buildSheetBlock(cat.key, i, catSheets[i] || {});
+    }
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function buildSheetBlock(catKey, index, existing) {
+  var blockId  = 'sheet-' + catKey + '-' + index;
+  var hasImg   = !!(existing && existing.image_url);
+  var label    = catKey === 'masse' ? 'Vue unique'
+               : catKey === 'plans' ? 'Niveau ' + (index + 1)
+               : 'Vue ' + (index + 1);
+
+  var html = '<div class="sheet-block" id="' + blockId + '">';
+  html += '<div class="sheet-block-header">' + label + '</div>';
+
+  // Prévisualisation
+  if (hasImg) {
+    var esc = existing.image_url.replace(/'/g, "\\'");
+    var d   = (existing.description || '').replace(/'/g, "\\'");
+    var sc  = (existing.scale || '').replace(/'/g, "\\'");
+    html += '<div class="sheet-preview" id="preview-' + blockId + '">';
+    html += '<img src="' + existing.image_url + '" alt="" onclick="openLivretLightbox(\'' + esc + '\',\'' + d + '\',\'' + sc + '\')">';
+    html += '<button class="sheet-del-btn" onclick="deleteSheet(\'' + catKey + '\',' + index + ')">✕</button>';
+    html += '</div>';
+  } else {
+    html += '<div class="sheet-preview hidden" id="preview-' + blockId + '"></div>';
+  }
+
+  // Champs texte
+  html += '<div class="sheet-fields">';
+  html += '<input type="text" class="form-input sheet-scale" id="scale-' + blockId + '" placeholder="Échelle (ex : 1:100, 1:50)" value="' + (existing.scale || '') + '">';
+  html += '<input type="text" class="form-input sheet-desc"  id="desc-'  + blockId + '" placeholder="Description (ex : Plan de distribution, Façade Ouest)" value="' + (existing.description || '') + '">';
+  html += '</div>';
+
+  // Bouton upload
+  html += '<label class="sheet-upload-zone" for="file-' + blockId + '">';
+  html += '<span>' + (hasImg ? '🔄 Remplacer l\'image' : '📎 Ajouter une image') + '</span>';
+  html += '<small>JPG · PNG — compression auto</small>';
+  html += '<input type="file" id="file-' + blockId + '" accept="image/*" style="display:none" onchange="doUploadSheet(\'' + catKey + '\',' + index + ',this)">';
+  html += '</label>';
+
+  html += '</div>';
+  return html;
+}
+
+function onNiveauxChange(val) {
+  var count = parseInt(val);
+  LIVRET_CATEGORIES.forEach(function(cat) {
+    if (!cat.multi) return;
+    var wrap = document.getElementById('livret-blocks-' + cat.key);
+    if (!wrap) return;
+    var blocks = wrap.querySelectorAll('.sheet-block');
+    // Ajouter les blocs manquants
+    for (var i = blocks.length; i < count; i++) {
+      var tmp = document.createElement('div');
+      tmp.innerHTML = buildSheetBlock(cat.key, i, {});
+      wrap.appendChild(tmp.firstChild);
+    }
+    // Masquer / afficher selon le sélecteur
+    var allBlocks = wrap.querySelectorAll('.sheet-block');
+    for (var j = 0; j < allBlocks.length; j++) {
+      allBlocks[j].style.display = j < count ? '' : 'none';
+    }
+  });
+}
+
+// ---- Upload d'une planche ----
+async function doUploadSheet(catKey, sheetIndex, input) {
+  if (!currentProjectId || !currentUser) return;
+  var file = input.files[0];
+  if (!file) return;
+
+  // Rafraîchir la session pour éviter les coupures token mobile
+  var sessionData = await sb.auth.getSession();
+  if (!sessionData.data.session) { toast('Session expirée. Reconnectez-vous.', 'error'); return; }
+
+  var blockId  = 'sheet-' + catKey + '-' + sheetIndex;
+  var scaleVal = (document.getElementById('scale-' + blockId) || {}).value || '';
+  var descVal  = (document.getElementById('desc-'  + blockId) || {}).value || '';
+
+  toast('Upload en cours…');
+
+  var compressed = await compressImageLivret(file, 1600, 0.82);
+  var ext  = 'jpg';
+  var path = 'sheets/' + currentProjectId + '/' + catKey + '/' + sheetIndex + '_' + Date.now() + '.' + ext;
+
+  var up = await sb.storage.from('project-images').upload(path, compressed, { upsert: true });
+  if (up.error) { toast('Erreur upload : ' + up.error.message, 'error'); input.value = ''; return; }
+
+  var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
+
+  // Upsert dans project_sheets
+  var exist = await sb.from('project_sheets')
+    .select('id')
+    .eq('project_id', currentProjectId)
+    .eq('category', catKey)
+    .eq('sheet_index', sheetIndex)
+    .maybeSingle();
+
+  var payload = {
+    project_id: currentProjectId,
+    category: catKey,
+    sheet_index: sheetIndex,
+    scale: scaleVal || null,
+    description: descVal || null,
+    image_url: url,
+    file_path: path
+  };
+
+  var dbErr;
+  if (exist.data && exist.data.id) {
+    var upd = await sb.from('project_sheets').update(payload).eq('id', exist.data.id);
+    dbErr = upd.error;
+  } else {
+    var ins = await sb.from('project_sheets').insert(payload);
+    dbErr = ins.error;
+  }
+  if (dbErr) { toast('Erreur BDD : ' + dbErr.message, 'error'); input.value = ''; return; }
+
+  input.value = '';
+  toast('Planche enregistrée !');
+
+  // Mise à jour prévisualisation inline
+  var prevEl = document.getElementById('preview-' + blockId);
+  if (prevEl) {
+    var esc = url.replace(/'/g, "\\'");
+    var d   = descVal.replace(/'/g, "\\'");
+    var sc  = scaleVal.replace(/'/g, "\\'");
+    prevEl.classList.remove('hidden');
+    prevEl.innerHTML = '<img src="' + url + '" alt="" onclick="openLivretLightbox(\'' + esc + '\',\'' + d + '\',\'' + sc + '\')">'
+      + '<button class="sheet-del-btn" onclick="deleteSheet(\'' + catKey + '\',' + sheetIndex + ')">✕</button>';
+  }
+  var lbl = document.querySelector('#file-' + blockId);
+  if (lbl && lbl.previousElementSibling) lbl.previousElementSibling.textContent = '🔄 Remplacer l\'image';
+}
+
+// ---- Suppression d'une planche ----
+async function deleteSheet(catKey, sheetIndex) {
+  if (!confirm('Supprimer cette planche du livret ?')) return;
+  await sb.from('project_sheets').delete()
+    .eq('project_id', currentProjectId)
+    .eq('category', catKey)
+    .eq('sheet_index', sheetIndex);
+  toast('Planche supprimée.');
+  await loadLivretForm();
+}
+
+// ---- Lightbox plein écran livret ----
+function openLivretLightbox(url, desc, scale) {
+  var old = document.getElementById('livret-lightbox');
+  if (old) old.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'livret-lightbox';
+  overlay.style.cssText = [
+    'position:fixed;inset:0;z-index:99999',
+    'background:rgba(0,0,0,0.94)',
+    'display:flex;flex-direction:column;align-items:center;justify-content:center',
+    'padding:1.5rem'
+  ].join(';');
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+  var metaHtml = '';
+  if (scale) metaHtml += '<span style="background:rgba(255,255,255,0.12);padding:4px 14px;border-radius:999px;font-size:0.76rem;font-family:monospace">Échelle : ' + scale + '</span>';
+  if (desc)  metaHtml += '<span style="background:rgba(255,255,255,0.12);padding:4px 14px;border-radius:999px;font-size:0.76rem;font-family:sans-serif;margin-left:6px">' + desc + '</span>';
+
+  overlay.innerHTML =
+    '<button onclick="document.getElementById(\'livret-lightbox\').remove()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:white;font-size:2rem;line-height:1;cursor:pointer">✕</button>'
+    + '<img src="' + url + '" style="max-width:100%;max-height:82vh;object-fit:contain;border-radius:6px;display:block" alt="">'
+    + (metaHtml ? '<div style="margin-top:1.1rem;color:white;text-align:center;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0.5rem">' + metaHtml + '</div>' : '');
+
+  document.body.appendChild(overlay);
+}
+
+// ---- Affichage Dossier Technique (page projet) ----
+async function loadLivretDetail(projectId) {
+  var container = document.getElementById('livret-detail-section');
+  if (!container) return;
+
+  var res = await sb.from('project_sheets')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('category').order('sheet_index');
+  var sheets = res.data || [];
+  if (sheets.length === 0) { container.innerHTML = ''; return; }
+
+  var CAT_LABELS = {
+    plans: '📐 Plans', coupes: '✂️ Sections / Coupes',
+    facades: '🏛 Façades', structure: '🔩 Structure',
+    rendus: '🎨 Rendus', masse: '🗺 Plan de masse'
+  };
+
+  var grouped = {};
+  sheets.forEach(function(s) {
+    if (!grouped[s.category]) grouped[s.category] = [];
+    grouped[s.category].push(s);
+  });
+
+  var html = '<div class="livret-detail-wrap"><h2 class="livret-detail-title">📋 Dossier Technique</h2>';
+
+  Object.keys(grouped).forEach(function(catKey) {
+    html += '<div class="livret-detail-cat">';
+    html += '<div class="livret-detail-cat-label">' + (CAT_LABELS[catKey] || catKey) + '</div>';
+    html += '<div class="livret-detail-grid">';
+    grouped[catKey].forEach(function(s) {
+      if (!s.image_url) return;
+      var esc = s.image_url.replace(/'/g, "\\'");
+      var d   = (s.description || '').replace(/'/g, "\\'");
+      var sc  = (s.scale || '').replace(/'/g, "\\'");
+      html += '<div class="livret-detail-card" onclick="openLivretLightbox(\'' + esc + '\',\'' + d + '\',\'' + sc + '\')">';
+      html += '<div class="livret-detail-img-wrap"><img src="' + s.image_url + '" alt="" draggable="false"><div class="livret-detail-zoom-icon">🔍</div></div>';
+      html += '<div class="livret-detail-meta">';
+      if (s.scale)       html += '<span class="livret-scale-tag">' + s.scale + '</span>';
+      if (s.description) html += '<p class="livret-desc-text">' + s.description + '</p>';
+      html += '</div></div>';
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ---- Compression image (safe : n'écrase pas une éventuelle version existante) ----
+var compressImageLivret = function(file, maxDim, quality) {
+  return new Promise(function(resolve) {
+    if (!file.type.startsWith('image/')) { resolve(file); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          var r = Math.min(maxDim / w, maxDim / h);
+          w = Math.round(w * r); h = Math.round(h * r);
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function(blob) {
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+        }, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
