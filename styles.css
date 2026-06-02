@@ -957,7 +957,7 @@ max-height: 100vh;
 }
 .upload-input { display: none; }
 /* AUTH */
-../* AUTH PAGES - Villa background */
+/* AUTH PAGES - Villa background */
 .auth-page{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   padding:2rem;padding-top:84px;position:relative;overflow:hidden;
