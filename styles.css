@@ -897,6 +897,7 @@ max-height: 100vh;
   font-family: sans-serif;
   line-height: 1.4;
 }
+.comment-form {
   margin-top: 0.75rem;
   border-top: 1px solid rgba(160,120,70,0.1);
   padding-top: 0.75rem;
