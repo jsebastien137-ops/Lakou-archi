@@ -465,48 +465,70 @@ function renderGrid(id, projects) {
     c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gris);font-size:0.85rem">Aucun projet disponible.</div>';
     return;
   }
+
   var html = '';
+
   for (var i = 0; i < projects.length; i++) {
-    var p = projects[i];
-    var student = p.student ? (p.student.full_name || '-') : '-';
+    var p        = projects[i];
+    var student  = p.student ? (p.student.full_name || '-') : '-';
     var studentId = p.student ? p.student.id : null;
-    var school = p.student && p.student.school ? p.student.school : null;
-    var schoolBadge = school ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;margin-left:4px;">' + school + '</span>' : '';
+    var school   = p.student && p.student.school ? p.student.school : null;
+    var year     = p.academic_year || '';
+    var area     = p.area ? p.area + ' m²' : '';
+    var atelier  = p.program_type || '';
+    var likes    = p.like_count || 0;
+    var views    = p.view_count || 0;
+    var isOwner  = currentUser && p.student_id === currentUser.id;
+    var isAdmin  = currentProfile && currentProfile.role === 'admin';
+
+    var schoolBadge = school
+      ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;margin-left:4px">' + school + '</span>'
+      : '';
+
+    // ── stopPropagation + preventDefault pour ne pas déclencher le lien parent ──
     var studentHtml = studentId
-      ? '<span class="project-card-student clickable" onclick="event.stopPropagation();openStudentGallery(\'' + studentId + '\')">' + student + '</span>' + schoolBadge
+      ? '<span class="project-card-student clickable" onclick="event.stopPropagation();event.preventDefault();openStudentGallery(\'' + studentId + '\')">' + student + '</span>' + schoolBadge
       : '<span class="project-card-student">' + student + '</span>' + schoolBadge;
-    var year = p.academic_year || '';
-    var area = p.area ? p.area + ' m2' : '';
-    var atelier = p.program_type || '';
-    var likes = p.like_count || 0;
-    var views = p.view_count || 0;
+
+    // ── image sans pointer-events pour laisser le clic remonter à l'<a> ──
     var imgHtml = p.cover_image_url
-      ? '<img class="clickable" src="' + getWatermarkedUrl(p.cover_image_url, student) + '" draggable="false">'
+      ? '<img src="' + getWatermarkedUrl(p.cover_image_url, student) + '" draggable="false" style="pointer-events:none;display:block;width:100%;height:100%;object-fit:cover">'
       : '<div class="project-card-placeholder">' + p.title.charAt(0) + '</div>';
+
     var badge = p.level ? '<span class="project-card-badge">' + p.level + '</span>' : '';
-    html += '<div class="project-card" onclick="openProjectDetail(' + JSON.stringify(p.id) + ')">';
+
+    // ── Lien de routage qui enveloppe toute la carte ──────────────────────────
+    html += '<a href="javascript:void(0)" onclick="openProjectDetail(' + JSON.stringify(p.id) + ')" style="display:block;text-decoration:none;color:inherit">';
+    html += '<div class="project-card">';
+
     html += '<div class="project-card-img">' + imgHtml + badge + '</div>';
+
     html += '<div class="project-card-body">';
     html += '<h3 class="project-card-title">' + p.title + '</h3>';
-    if (p.description) { html += '<p class="project-card-desc" style="font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin:0.3rem 0 0.5rem;line-height:1.4;">' + p.description + '</p>'; }
+    if (p.description) {
+      html += '<p class="project-card-desc" style="font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin:0.3rem 0 0.5rem;line-height:1.4">' + p.description + '</p>';
+    }
+
     html += '<div class="project-card-meta-row">';
-    if (year) { html += '<span class="project-card-meta-item">📅 ' + year + '</span>'; }
-    if (area) { html += '<span class="project-card-meta-item">📐 ' + area + '</span>'; }
-    if (atelier) { html += '<span class="project-card-meta-item">🏛️ ' + atelier + '</span>'; }
+    if (year)    html += '<span class="project-card-meta-item">📅 ' + year + '</span>';
+    if (area)    html += '<span class="project-card-meta-item">📐 ' + area + '</span>';
+    if (atelier) html += '<span class="project-card-meta-item">🏛️ ' + atelier + '</span>';
     html += '</div>';
+
     html += '<div class="project-card-footer">';
     html += studentHtml;
-    var isOwner = currentUser && p.student_id === currentUser.id;
-    var isAdmin = currentProfile && currentProfile.role === 'admin';
-    html += '<div class="project-card-stats">';
-    html += '<span>👁 ' + views + '</span>';
-    html += '<span>♥ ' + likes + '</span>';
-    html += '</div></div>';
+    html += '<div class="project-card-stats"><span>👁 ' + views + '</span><span>♥ ' + likes + '</span></div>';
+    html += '</div>'; // footer
+
     if (isOwner || isAdmin) {
-      html += '<button class="project-delete-btn" onclick="event.stopPropagation();deleteProject(\'' + p.id + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif;">🗑 Supprimer</button>';
+      html += '<button class="project-delete-btn" onclick="event.stopPropagation();event.preventDefault();deleteProject(\'' + p.id + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif">🗑 Supprimer</button>';
     }
-    html += '</div></div>';
+
+    html += '</div>'; // card-body
+    html += '</div>'; // project-card
+    html += '</a>';   // lien de routage
   }
+
   c.innerHTML = html;
 }
 
