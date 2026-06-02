@@ -57,11 +57,63 @@ if (name === 'teachers') { loadTeachersHome(); }
 
     if (name === 'settings') {}
 }
-   async function loadHomeProjects() {
+async function loadProjectImages() {
+  if (!currentProjectId) return;
+  var container = document.getElementById('project-images-section');
+  if (!container) return;
+
+  var res = await sb.from('project_images')
+    .select('*')
+    .eq('project_id', currentProjectId)
+    .order('category')
+    .order('order_index');
+
+  var images = res.data || [];
+  var categories = [
+    { key: 'cover',   label: '🖼 Couverture' },
+    { key: 'plans',   label: '📐 Plans' },
+    { key: 'coupes',  label: '✂️ Coupes' },
+    { key: 'facades', label: '🏛 Façades' },
+    { key: 'other',   label: '📁 Autre' }
+  ];
+
+  var html = '<div class="gallery-upload-wrap">';
+
+  /* Bouton + sélecteur d'upload */
+  html += '<div class="gallery-upload-controls">';
+  html += '<select id="new-img-category" class="form-select" style="flex:1">';
+  categories.forEach(function(cat) {
+    html += '<option value="' + cat.key + '">' + cat.label + '</option>';
+  });
+  html += '</select>';
+  html += '<label class="gallery-upload-btn" for="new-img-file">+ Ajouter une image</label>';
+  html += '<input type="file" id="new-img-file" accept="image/*,application/pdf" style="display:none" onchange="doUploadProjectImage()">';
+  html += '</div>';
+
+  /* Grille par catégorie */
+  categories.forEach(function(cat) {
+    var catImgs = images.filter(function(im) { return im.category === cat.key; });
+    if (catImgs.length === 0) return;
+    html += '<div class="gallery-cat-block">';
+    html += '<div class="gallery-cat-label">' + cat.label + ' <span class="gallery-cat-count">' + catImgs.length + '</span></div>';
+    html += '<div class="gallery-cat-grid">';
+    catImgs.forEach(function(im) {
+      html += '<div class="gallery-thumb" id="gthumb-' + im.id + '">';
+      html += '<img src="' + im.url + '" alt="">';
+      html += '<button class="gallery-thumb-del" onclick="deleteProjectImage(\'' + im.id + '\')" title="Supprimer">✕</button>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+  async function loadHomeProjects() {
   var grid = document.getElementById('home-projects-grid');
   if (!grid) { return; }
   var res = await sb.from('projects')
-    .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
+    .select('*, student:profiles!student_id(id, full_name, avatar_url, school), images:project_images(id, url, category, order_index)')
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
     .limit(6);
@@ -392,7 +444,7 @@ if (imgEl && p.cover_image_url) {
 }
 async function loadPublicProjects() {
   var res = await sb.from('projects')
-    .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
+    .select('*, student:profiles!student_id(id, full_name, avatar_url, school), images:project_images(id, url, category, order_index)')
     .eq('status', 'approved')
     .order('created_at', { ascending: false });
   allPublicProjects = res.data || [];
@@ -409,49 +461,105 @@ function filterProjects(level,btn) {
 
 function renderGrid(id, projects) {
   var c = document.getElementById(id);
+  if (!c) return;
   if (!projects || projects.length === 0) {
     c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gris);font-size:0.85rem">Aucun projet disponible.</div>';
     return;
   }
+
   var html = '';
   for (var i = 0; i < projects.length; i++) {
     var p = projects[i];
+    var pid = p.id;
     var student = p.student ? (p.student.full_name || '-') : '-';
     var studentId = p.student ? p.student.id : null;
     var school = p.student && p.student.school ? p.student.school : null;
-    var schoolBadge = school ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;margin-left:4px;">' + school + '</span>' : '';
+
+    var schoolBadge = school
+      ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;margin-left:4px;">' + school + '</span>'
+      : '';
     var studentHtml = studentId
       ? '<span class="project-card-student clickable" onclick="event.stopPropagation();openStudentGallery(\'' + studentId + '\')">' + student + '</span>' + schoolBadge
       : '<span class="project-card-student">' + student + '</span>' + schoolBadge;
+
     var year = p.academic_year || '';
     var area = p.area ? p.area + ' m2' : '';
     var atelier = p.program_type || '';
     var likes = p.like_count || 0;
     var views = p.view_count || 0;
-    var imgHtml = p.cover_image_url
-      ? '<img class="clickable" src="' + getWatermarkedUrl(p.cover_image_url, student) + '" draggable="false">'
-      : '<div class="project-card-placeholder">' + p.title.charAt(0) + '</div>';
     var badge = p.level ? '<span class="project-card-badge">' + p.level + '</span>' : '';
-    html += '<div class="project-card" onclick="openProjectDetail(' + JSON.stringify(p.id) + ')">';
-    html += '<div class="project-card-img">' + imgHtml + badge + '</div>';
+
+    /* ---- Construction du bloc image / carrousel ---- */
+    var imgBlock = '';
+    var imgs = (p.images || []).slice().sort(function(a, b) {
+      var catOrder = { cover: 0, plans: 1, coupes: 2, facades: 3, other: 4 };
+      var ca = catOrder[a.category] !== undefined ? catOrder[a.category] : 99;
+      var cb = catOrder[b.category] !== undefined ? catOrder[b.category] : 99;
+      if (ca !== cb) return ca - cb;
+      return (a.order_index || 0) - (b.order_index || 0);
+    });
+
+    var catLabels = { cover: 'Couverture', plans: 'Plans', coupes: 'Coupes', facades: 'Façades', other: '' };
+
+    if (imgs.length > 1) {
+        /* — CARROUSEL — */
+      imgBlock += '<div class="proj-carousel" id="pcarousel-' + pid + '" data-idx="0">';
+      for (var k = 0; k < imgs.length; k++) {
+        var im = imgs[k];
+        var catLabel = catLabels[im.category] || '';
+        var display = k === 0 ? 'block' : 'none';
+        imgBlock += '<div class="proj-carousel-slide" style="display:' + display + ';position:relative;">';
+        imgBlock += '<img class="clickable" src="' + getWatermarkedUrl(im.url, student) + '" draggable="false" onclick="openProjectDetail(\'' + pid + '\')">';
+        if (catLabel) {
+          imgBlock += '<span class="proj-carousel-cat">' + catLabel + '</span>';
+        }
+        imgBlock += '</div>';
+      }
+      imgBlock += badge;
+      /* Compteur + flèches */
+      imgBlock += '<div class="proj-carousel-controls" onclick="event.stopPropagation()">';
+      imgBlock += '<button class="proj-carousel-btn" onclick="projCarouselNav(\'' + pid + '\',-1)">&#8249;</button>';
+      imgBlock += '<span class="proj-carousel-counter"><span class="proj-carousel-cur">1</span>/' + imgs.length + '</span>';
+      imgBlock += '<button class="proj-carousel-btn" onclick="projCarouselNav(\'' + pid + '\',1)">&#8250;</button>';
+      imgBlock += '</div>';
+      imgBlock += '</div>';
+
+    } else if (imgs.length === 1) {
+      /* — IMAGE UNIQUE depuis project_images — */
+      imgBlock  = '<img class="clickable" src="' + getWatermarkedUrl(imgs[0].url, student) + '" draggable="false">';
+      imgBlock += badge;
+
+    } else if (p.cover_image_url) {
+      /* — FALLBACK : ancienne cover_image_url — */
+      imgBlock  = '<img class="clickable" src="' + getWatermarkedUrl(p.cover_image_url, student) + '" draggable="false">';
+      imgBlock += badge;
+
+    } else {
+      /* — PLACEHOLDER — */
+      imgBlock = '<div class="project-card-placeholder">' + p.title.charAt(0) + '</div>' + badge;
+    }
+
+    /* ---- Carte complète ---- */
+    html += '<div class="project-card" onclick="openProjectDetail(\'' + pid + '\')">';
+    html += '<div class="project-card-img">' + imgBlock + '</div>';
     html += '<div class="project-card-body">';
     html += '<h3 class="project-card-title">' + p.title + '</h3>';
-    if (p.description) { html += '<p class="project-card-desc" style="font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin:0.3rem 0 0.5rem;line-height:1.4;">' + p.description + '</p>'; }
+    if (p.description) {
+      html += '<p class="project-card-desc" style="font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin:0.3rem 0 0.5rem;line-height:1.4;">' + p.description + '</p>';
+    }
     html += '<div class="project-card-meta-row">';
-    if (year) { html += '<span class="project-card-meta-item">📅 ' + year + '</span>'; }
-    if (area) { html += '<span class="project-card-meta-item">📐 ' + area + '</span>'; }
-    if (atelier) { html += '<span class="project-card-meta-item">🏛️ ' + atelier + '</span>'; }
+    if (year)   { html += '<span class="project-card-meta-item">📅 ' + year + '</span>'; }
+    if (area)   { html += '<span class="project-card-meta-item">📐 ' + area + '</span>'; }
+    if (atelier){ html += '<span class="project-card-meta-item">🏛️ ' + atelier + '</span>'; }
     html += '</div>';
     html += '<div class="project-card-footer">';
     html += studentHtml;
     var isOwner = currentUser && p.student_id === currentUser.id;
     var isAdmin = currentProfile && currentProfile.role === 'admin';
-    html += '<div class="project-card-stats">';
-    html += '<span>👁 ' + views + '</span>';
-    html += '<span>♥ ' + likes + '</span>';
-    html += '</div></div>';
+    html += '<div class="project-card-stats"><span>👁 ' + views + '</span><span>♥ ' + likes + '</span></div>';
+    html += '</div>';
     if (isOwner || isAdmin) {
-      html += '<button class="project-delete-btn" onclick="event.stopPropagation();deleteProject(\'' + p.id + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif;">🗑 Supprimer</button>';
+      html += '<button class="project-delete-btn" onclick="event.stopPropagation();deleteProject(\'' + pid + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif;">🗑 Supprimer</button>';
     }
     html += '</div></div>';
   }
@@ -632,7 +740,50 @@ async function doAddStage() {
   toast('Chambre ajoutee !');
   await loadStages();
 }
+async function doUploadProjectImage() {
+  if (!currentProjectId || !currentUser) return;
+  var input = document.getElementById('new-img-file');
+  var catSelect = document.getElementById('new-img-category');
+  if (!input || !input.files[0]) return;
 
+  var file = input.files[0];
+  var category = catSelect ? catSelect.value : 'cover';
+  toast('Upload en cours…');
+
+  /* Chemin : project-images/{projectId}/{category}/{timestamp}.ext */
+  var ext = file.name.split('.').pop().toLowerCase();
+  var path = currentProjectId + '/' + category + '/' + Date.now() + '.' + ext;
+
+  var up = await sb.storage.from('project-images').upload(path, file, { upsert: false });
+  if (up.error) { toast('Erreur upload : ' + up.error.message, 'error'); input.value = ''; return; }
+
+  var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
+
+  /* Compter les images existantes pour order_index */
+  var countRes = await sb.from('project_images')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', currentProjectId)
+    .eq('category', category);
+  var orderIdx = countRes.count || 0;
+
+  var ins = await sb.from('project_images').insert({
+    project_id: currentProjectId,
+    url: url,
+    category: category,
+    order_index: orderIdx,
+    file_size: file.size
+  });
+  if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); input.value = ''; return; }
+
+  /* Si c'est la première cover, mettre à jour cover_image_url aussi */
+  if (category === 'cover' && orderIdx === 0) {
+    await sb.from('projects').update({ cover_image_url: url }).eq('id', currentProjectId);
+  }
+
+  input.value = '';
+  toast('Image ajoutée !');
+  await loadProjectImages();
+}
 async function doUploadImage(stageId,input) {
   var file=input.files[0];
   if(!file) return;
@@ -649,6 +800,7 @@ if (uploadBtn) uploadBtn.style.display = 'block';
   toast('Image ajoutee !');
   await loadStages();
 }
+
 
 async function doSubmitValidation() {
   var res = await sb.from('projects').update({status:'approved'}).eq('id', currentProjectId);
@@ -997,6 +1149,18 @@ html += '</div></div>';
     console.log('atelier err:', e.message, e);
     grid.innerHTML = '<div style="text-align:center;padding:2rem;color:red;font-size:0.8rem">Erreur: ' + e.message + '</div>';
   }
+}
+function projCarouselNav(projectId, direction) {
+  var carousel = document.getElementById('pcarousel-' + projectId);
+  if (!carousel) return;
+  var slides = carousel.querySelectorAll('.proj-carousel-slide');
+  var cur = parseInt(carousel.getAttribute('data-idx') || '0', 10);
+  slides[cur].style.display = 'none';
+  var next = (cur + direction + slides.length) % slides.length;
+  slides[next].style.display = 'block';
+  carousel.setAttribute('data-idx', next);
+  var counter = carousel.querySelector('.proj-carousel-cur');
+  if (counter) counter.textContent = next + 1;
 }
 function carouselNav(postId, direction) {
   var carousel = document.getElementById('carousel-' + postId);
@@ -1527,6 +1691,36 @@ var ATELIER_IMGS = [
   } catch(e) {
     console.warn('loadTeachersHome:', e);
   }
+}
+async function deleteProjectImage(imageId) {
+  if (!confirm('Supprimer cette image ?')) return;
+
+  /* Récupérer l'URL pour supprimer dans le storage */
+  var imgRes = await sb.from('project_images').select('url').eq('id', imageId).single();
+  if (!imgRes.error && imgRes.data) {
+    var url = imgRes.data.url;
+    /* Extraire le path depuis l'URL publique */
+    var storageBase = url.indexOf('/object/public/project-images/');
+    if (storageBase !== -1) {
+      var storagePath = decodeURIComponent(url.substring(storageBase + '/object/public/project-images/'.length));
+      await sb.storage.from('project-images').remove([storagePath]);
+    }
+  }
+
+  var del = await sb.from('project_images').delete().eq('id', imageId);
+  if (del.error) { toast('Erreur : ' + del.error.message, 'error'); return; }
+
+  /* Animer la suppression */
+  var thumb = document.getElementById('gthumb-' + imageId);
+  if (thumb) {
+    thumb.style.transition = 'opacity 0.2s, transform 0.2s';
+    thumb.style.opacity = '0';
+    thumb.style.transform = 'scale(0.85)';
+    setTimeout(function() { loadProjectImages(); }, 220);
+  } else {
+    await loadProjectImages();
+  }
+  toast('Image supprimée.');
 }
 
     function goToTeacherProfile(teacherId) {
