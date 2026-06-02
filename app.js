@@ -837,6 +837,9 @@ if (coverEl) {
   }
   var cnt=await sb.from('likes').select('*',{count:'exact',head:true}).eq('project_id',projectId);
   document.getElementById('like-count').textContent=(cnt.count||0)+' like(s)';
+// Avant cette accolade fermante }, ajoute :
+  await loadTechnicalDossier(projectId);
+}
 }
 // ═══════════════════════════════════════════════════════════════════
 // DOSSIER TECHNIQUE — Fonctions autonomes (préfixe td-)
