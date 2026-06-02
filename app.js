@@ -838,7 +838,321 @@ if (coverEl) {
   var cnt=await sb.from('likes').select('*',{count:'exact',head:true}).eq('project_id',projectId);
   document.getElementById('like-count').textContent=(cnt.count||0)+' like(s)';
 }
+// ═══════════════════════════════════════════════════════════════════
+// DOSSIER TECHNIQUE — Fonctions autonomes (préfixe td-)
+// ═══════════════════════════════════════════════════════════════════
 
+var TD_SECTIONS = [
+  { key: 'plan_masse', label: 'Plan de masse / Implantation', icon: '🗺' },
+  { key: 'niveaux',    label: 'Niveaux & Étages',             icon: '📐', hasSubLabel: true, labelHint: 'ex: Niveau 1, RDC, Niveau -1, Échelle 1/100' },
+  { key: 'coupes',     label: 'Coupes',                       icon: '✂️', hasSubLabel: true, labelHint: 'ex: Coupe A-A, Coupe longitudinale' },
+  { key: 'facades',    label: 'Façades',                      icon: '🏛', hasSubLabel: true, labelHint: 'ex: Façade Nord, Façade principale' },
+  { key: 'structure',  label: 'Structure',                    icon: '⚙️' },
+  { key: 'rendus',     label: 'Rendus',                       icon: '🎨' }
+];
+
+// ─── Compression canvas (même ratio que le reste du site) ─────────
+function tdCompress(file, callback) {
+  // PDF et SVG : upload direct sans compression
+  if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+    callback(file); return;
+  }
+  var MAX = 1600, Q = 0.82;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      var cvs = document.createElement('canvas');
+      cvs.width = w; cvs.height = h;
+      cvs.getContext('2d').drawImage(img, 0, 0, w, h);
+      cvs.toBlob(function(blob) {
+        callback(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }));
+      }, 'image/jpeg', Q);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Upload avec compression ──────────────────────────────────────
+async function tdUploadImage(sectionKey, file, sublabel) {
+  if (!currentProjectId || !currentUser) return;
+  toast('Compression en cours…');
+  tdCompress(file, async function(compressed) {
+    var ext  = compressed.name.split('.').pop().toLowerCase();
+    var path = 'td/' + currentProjectId + '/' + sectionKey + '/' + Date.now() + '.' + ext;
+    var up   = await sb.storage.from('project-images').upload(path, compressed, { upsert: false });
+    if (up.error) { toast('Erreur upload : ' + up.error.message, 'error'); return; }
+    var url  = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
+    var cntR = await sb.from('project_images')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', currentProjectId)
+      .eq('category', sectionKey);
+    var data = {
+      project_id: currentProjectId,
+      url: url,
+      category: sectionKey,
+      order_index: cntR.count || 0,
+      file_size: compressed.size
+    };
+    if (sublabel) data.alt_text = sublabel;
+    var ins = await sb.from('project_images').insert(data);
+    if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); return; }
+    toast('Image ajoutée !');
+    await loadTechnicalDossier(currentProjectId);
+  });
+}
+
+// ─── Déclencheur input file ───────────────────────────────────────
+async function tdHandleUpload(sectionKey, inputEl) {
+  var file = inputEl.files[0]; if (!file) return;
+  var lbl  = document.getElementById('td-sublabel-' + sectionKey);
+  await tdUploadImage(sectionKey, file, lbl ? lbl.value.trim() : '');
+  inputEl.value = '';
+}
+
+// ─── Suppression d'image ──────────────────────────────────────────
+async function tdDeleteImage(imageId) {
+  if (!confirm('Supprimer cette image ?')) return;
+  var res = await sb.from('project_images').delete().eq('id', imageId);
+  if (res.error) { toast(res.error.message, 'error'); return; }
+  toast('Image supprimée.');
+  await loadTechnicalDossier(currentProjectId);
+}
+
+// ─── Like (met à jour les deux zones: dossier + haut de page) ─────
+async function tdToggleLike() {
+  if (!currentUser) { toast('Connectez-vous pour liker.', 'error'); return; }
+  var ex = await sb.from('likes').select('id')
+    .eq('project_id', currentProjectId).eq('user_id', currentUser.id).maybeSingle();
+  if (ex && ex.data) { await sb.from('likes').delete().eq('id', ex.data.id); }
+  else               { await sb.from('likes').insert({ project_id: currentProjectId, user_id: currentUser.id }); }
+  var cnt = await sb.from('likes').select('*', { count: 'exact', head: true }).eq('project_id', currentProjectId);
+  var label = (cnt.count || 0) + ' like(s)';
+  // Synchronise les deux affichages
+  var el1 = document.getElementById('like-count');    if (el1) el1.textContent = label;
+  var el2 = document.getElementById('td-like-count'); if (el2) el2.textContent = label;
+  var b1  = document.getElementById('like-btn');      if (b1)  b1.classList.toggle('liked');
+  var b2  = document.getElementById('td-like-btn');
+  if (b2) {
+    b2.classList.toggle('liked');
+    b2.style.background = b2.classList.contains('liked') ? 'rgba(160,120,70,0.12)' : 'none';
+  }
+}
+
+// ─── Commentaires ─────────────────────────────────────────────────
+async function tdLoadComments() {
+  var list = document.getElementById('td-comments-list'); if (!list) return;
+  var res  = await sb.from('project_comments')
+    .select('*, author:profiles!user_id(full_name)')
+    .eq('project_id', currentProjectId)
+    .order('created_at', { ascending: true });
+  if (res.error) {
+    list.innerHTML = '<p style="font-size:0.76rem;color:var(--gris,#999);font-family:sans-serif;margin:0;font-style:italic">Commentaires non disponibles.</p>';
+    return;
+  }
+  var comments = res.data || [];
+  if (comments.length === 0) {
+    list.innerHTML = '<p style="font-size:0.76rem;color:var(--gris,#999);font-family:sans-serif;font-style:italic;margin:0">Aucun commentaire.</p>';
+    return;
+  }
+  var html = '';
+  comments.forEach(function(c) {
+    var name   = c.author ? c.author.full_name : 'Anonyme';
+    var date   = new Date(c.created_at).toLocaleDateString('fr-FR');
+    var canDel = currentUser && (
+      c.user_id === currentUser.id ||
+      (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'teacher'))
+    );
+    html += '<div style="padding:0.7rem 0;border-bottom:1px solid rgba(160,120,70,0.08);display:flex;gap:0.6rem;align-items:flex-start">';
+    html += '<div style="width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--terre,#8B4513);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-family:sans-serif;font-weight:700">'
+          + name.charAt(0).toUpperCase() + '</div>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.12rem">';
+    html += '<span style="font-size:0.76rem;font-weight:600;color:#2c1a0e;font-family:sans-serif">' + name + '</span>';
+    html += '<span style="font-size:0.68rem;color:var(--gris,#999);font-family:sans-serif">' + date + '</span>';
+    if (canDel) {
+      html += '<button onclick="tdDeleteComment(\'' + c.id + '\')" style="margin-left:auto;background:none;border:none;color:var(--gris,#aaa);font-size:0.66rem;cursor:pointer;padding:0;line-height:1">✕</button>';
+    }
+    html += '</div>';
+    html += '<p style="font-size:0.8rem;color:#2c1a0e;margin:0;line-height:1.5;font-family:sans-serif;word-break:break-word">' + c.content + '</p>';
+    html += '</div></div>';
+  });
+  list.innerHTML = html;
+}
+
+async function tdPostComment() {
+  if (!currentUser) { toast('Connectez-vous pour commenter.', 'error'); return; }
+  var input = document.getElementById('td-comment-input');
+  var text  = input ? input.value.trim() : '';
+  if (!text) return;
+  var res = await sb.from('project_comments').insert({
+    project_id: currentProjectId,
+    user_id:    currentUser.id,
+    content:    text
+  });
+  if (res.error) { toast(res.error.message, 'error'); return; }
+  input.value = '';
+  toast('Commentaire posté !');
+  await tdLoadComments();
+}
+
+async function tdDeleteComment(commentId) {
+  if (!confirm('Supprimer ce commentaire ?')) return;
+  await sb.from('project_comments').delete().eq('id', commentId);
+  await tdLoadComments();
+}
+
+function saveTechnicalDossier() {
+  // Les images sont sauvegardées en temps réel à l'upload.
+  // Ce bouton sert de confirmation visuelle + point d'extension futur.
+  toast('Dossier sauvegardé ! Toutes les images sont enregistrées.');
+}
+
+// ─── Rendu principal ──────────────────────────────────────────────
+async function loadTechnicalDossier(projectId) {
+  var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
+  var res    = await sb.from('project_images')
+    .select('*')
+    .eq('project_id', projectId)
+    .in('category', tdKeys)
+    .order('category')
+    .order('order_index');
+  var images = res.data || [];
+
+  // Trouver ou créer dynamiquement le conteneur
+  var container = document.getElementById('td-section');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'td-section';
+    var page = document.getElementById('page-project-detail');
+    if (page) page.appendChild(container); else document.body.appendChild(container);
+  }
+
+  var html = '<div style="max-width:860px;margin:4rem auto 0;padding:0 1.25rem 5rem">';
+
+  // ── En-tête dossier ───────────────────────────────────────────
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2.75rem;padding-bottom:0.75rem;border-bottom:2px solid rgba(160,120,70,0.15)">';
+  html += '<h2 style="font-size:0.95rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:#2c1a0e;margin:0;font-family:var(--font-serif,Georgia,serif)">Dossier Technique</h2>';
+  html += '<button onclick="saveTechnicalDossier()" style="background:var(--terre,#8B4513);color:#fff;border:none;padding:0.42rem 1.2rem;border-radius:4px;font-size:0.73rem;cursor:pointer;font-family:sans-serif;letter-spacing:0.06em;font-weight:600">Sauvegarder</button>';
+  html += '</div>';
+
+  // ── Sections techniques ───────────────────────────────────────
+  TD_SECTIONS.forEach(function(section) {
+    var imgs = images.filter(function(im) { return im.category === section.key; });
+
+    html += '<div style="margin-bottom:3rem">';
+
+    // Titre de section + bouton upload
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.9rem;padding-bottom:0.4rem;border-bottom:1px solid rgba(160,120,70,0.18)">';
+    html += '<span style="font-size:0.73rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--terre,#8B4513);font-family:sans-serif">'
+          + section.icon + '\u00a0' + section.label + '</span>';
+    html += '<label for="td-file-' + section.key + '" '
+          + 'style="font-size:0.72rem;color:var(--terre,#8B4513);cursor:pointer;font-family:sans-serif;font-weight:600;user-select:none">+ Ajouter'
+          + '<input type="file" id="td-file-' + section.key + '" accept="image/*,application/pdf" '
+          + 'style="display:none" onchange="tdHandleUpload(\'' + section.key + '\',this)"></label>';
+    html += '</div>';
+
+    // Champ étiquette/échelle (uniquement sections compatibles)
+    if (section.hasSubLabel) {
+      html += '<div style="margin-bottom:0.65rem">';
+      html += '<input type="text" id="td-sublabel-' + section.key + '" '
+            + 'placeholder="' + (section.labelHint || 'Étiquette optionnelle') + '" '
+            + 'style="width:100%;max-width:340px;padding:0.3rem 0.55rem;font-size:0.73rem;'
+            + 'border:1px solid rgba(160,120,70,0.22);border-radius:4px;font-family:sans-serif;'
+            + 'color:#2c1a0e;background:rgba(255,255,255,0.55);box-sizing:border-box">';
+      html += '</div>';
+    }
+
+    // Grille d'images (containers fixes — design garanti)
+    if (imgs.length > 0) {
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0.6rem">';
+      imgs.forEach(function(img) {
+        var safeUrl = img.url.replace(/'/g, "\\'");
+        html += '<div style="position:relative;border-radius:5px;overflow:hidden;background:#ede8e1;aspect-ratio:4/3">';
+        // Image cliquable → lightbox existante
+        html += '<img src="' + img.url + '" alt="' + (img.alt_text || '') + '" '
+              + 'onclick="openLightbox(\'' + safeUrl + '\')" draggable="false" '
+              + 'style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block;transition:opacity 0.18s" '
+              + 'onmouseover="this.style.opacity=\'0.86\'" onmouseout="this.style.opacity=\'1\'">';
+        // Badge étiquette
+        if (img.alt_text) {
+          html += '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(20,10,4,0.72));padding:0.22rem 0.4rem;font-size:0.6rem;color:#fff;font-family:sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                + img.alt_text + '</div>';
+        }
+        // Bouton supprimer
+        html += '<button onclick="event.stopPropagation();tdDeleteImage(\'' + img.id + '\')" '
+              + 'style="position:absolute;top:4px;right:4px;background:rgba(20,10,4,0.52);border:none;'
+              + 'color:#fff;width:20px;height:20px;border-radius:50%;font-size:0.58rem;cursor:pointer;'
+              + 'display:flex;align-items:center;justify-content:center;padding:0;line-height:1">✕</button>';
+        html += '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div style="border:1.5px dashed rgba(160,120,70,0.2);border-radius:5px;padding:1.6rem;text-align:center">';
+      html += '<p style="font-size:0.75rem;color:var(--gris,#aaa);margin:0;font-family:sans-serif">Aucun fichier — cliquer sur "+ Ajouter"</p>';
+      html += '</div>';
+    }
+
+    html += '</div>'; // fin section
+  });
+
+  // ── Zone Interactions ─────────────────────────────────────────
+  html += '<div style="border-top:1px solid rgba(160,120,70,0.18);padding-top:2rem;margin-top:0.25rem">';
+  html += '<p style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2c1a0e;margin:0 0 1.25rem;font-family:sans-serif">Interactions</p>';
+
+  // Like
+  html += '<div style="margin-bottom:1.75rem">';
+  html += '<button id="td-like-btn" onclick="tdToggleLike()" '
+        + 'style="background:none;border:1px solid rgba(160,120,70,0.28);padding:0.36rem 1rem;border-radius:20px;'
+        + 'font-size:0.78rem;cursor:pointer;color:#2c1a0e;font-family:sans-serif;display:inline-flex;'
+        + 'align-items:center;gap:0.28rem;transition:background 0.18s">♥ <span id="td-like-count">…</span></button>';
+  html += '</div>';
+
+  // Liste commentaires
+  html += '<div id="td-comments-list" style="margin-bottom:1.2rem"></div>';
+
+  // Formulaire de commentaire
+  if (currentUser) {
+    html += '<div style="display:flex;gap:0.5rem;align-items:flex-end">';
+    html += '<textarea id="td-comment-input" rows="2" placeholder="Votre commentaire…" '
+          + 'style="flex:1;padding:0.52rem 0.68rem;font-size:0.79rem;border:1px solid rgba(160,120,70,0.22);'
+          + 'border-radius:5px;resize:vertical;font-family:sans-serif;color:#2c1a0e;'
+          + 'background:rgba(255,255,255,0.55);min-height:56px;box-sizing:border-box"></textarea>';
+    html += '<button onclick="tdPostComment()" '
+          + 'style="background:var(--terre,#8B4513);color:#fff;border:none;padding:0.52rem 1.05rem;'
+          + 'border-radius:5px;font-size:0.76rem;cursor:pointer;font-family:sans-serif;font-weight:600;'
+          + 'white-space:nowrap;align-self:flex-end">Commenter</button>';
+    html += '</div>';
+  } else {
+    html += '<p style="font-size:0.76rem;color:var(--gris,#aaa);font-family:sans-serif;font-style:italic;margin:0">Connectez-vous pour commenter.</p>';
+  }
+
+  html += '</div>'; // fin interactions
+  html += '</div>'; // fin wrapper
+
+  container.innerHTML = html;
+
+  // Synchro like count
+  var cnt = await sb.from('likes').select('*', { count: 'exact', head: true }).eq('project_id', projectId);
+  var lbl = (cnt.count || 0) + ' like(s)';
+  var elTd = document.getElementById('td-like-count'); if (elTd) elTd.textContent = lbl;
+
+  // État liked pour l'utilisateur courant
+  if (currentUser) {
+    var ul = await sb.from('likes').select('id')
+      .eq('project_id', projectId).eq('user_id', currentUser.id).maybeSingle();
+    if (ul && ul.data) {
+      var btn = document.getElementById('td-like-btn');
+      if (btn) { btn.classList.add('liked'); btn.style.background = 'rgba(160,120,70,0.12)'; }
+    }
+  }
+
+  await tdLoadComments();
+}
 async function doToggleLike() {
   console.log('doToggleLike called, currentProjectId:', currentProjectId, 'currentUser:', currentUser ? currentUser.id : 'NULL');
   if(!currentUser) { showPage('login'); return; }
