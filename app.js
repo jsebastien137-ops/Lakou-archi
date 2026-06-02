@@ -562,7 +562,10 @@ function openAtelierOrLogin(type) {
 }
 async function doCreateProject() {
   if (!currentUser) { showPage('login'); return; }
-  hideErr('new-project-error');
+ var sessionCheck = await sb.auth.getSession();
+  if (!sessionCheck.data.session) { showPage('login'); return; }
+
+    hideErr('new-project-error');
   var btn = document.getElementById('create-proj-btn');
   if (btn.disabled) { return; } // ← bloque les doubles clics
   var title = document.getElementById('proj-title').value;
