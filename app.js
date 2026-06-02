@@ -687,6 +687,7 @@ async function loadEditProject() {
     area.innerHTML='<div class="pending-card" style="background:#edf7ed;border-color:#a8d4a8"><p style="color:#2a6b2a">Projet approuve et publie.</p></div>';
   }
   await loadStages();
+    await loadProjectImages();
 }
 async function loadStages() {
   var res=await sb.from('project_stages').select('*, images:stage_images(*)').eq('project_id',currentProjectId).order('order_index');
@@ -1549,25 +1550,39 @@ async function doUploadCover(input) {
 async function doUploadCoverMultiple(input) {
   var files = Array.from(input.files);
   if (!files.length || !currentProjectId) return;
-  toast('Upload cover' + (files.length > 1 ? 's' : '') + '... ⏳');
+  toast('Upload en cours... ⏳');
   var firstUrl = null;
+
   for (var i = 0; i < files.length; i++) {
     var file = files[i];
     var ext = file.name.split('.').pop();
-    var path = 'covers/' + currentProjectId + '/cover-' + i + '.' + ext;
+    var path = 'covers/' + currentProjectId + '/cover-' + Date.now() + '-' + i + '.' + ext;
     var up = await sb.storage.from('project-images').upload(path, file, { upsert: true });
     if (up.error) { toast(up.error.message, 'error'); continue; }
     var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
     if (i === 0) firstUrl = url;
+
+    // ← AJOUT : insérer dans project_images
+    await sb.from('project_images').insert({
+      project_id: currentProjectId,
+      url: url,
+      category: 'cover',
+      order_index: i
+    });
   }
+
+  // Mettre à jour cover_image_url avec la première image
   if (firstUrl) {
     await sb.from('projects').update({ cover_image_url: firstUrl }).eq('id', currentProjectId);
     var preview = document.getElementById('cover-preview');
-    var placeholder = document.getElementById('cover-placeholder');
     if (preview) { preview.src = firstUrl; preview.style.display = 'block'; }
+    var placeholder = document.getElementById('cover-placeholder');
     if (placeholder) placeholder.style.display = 'none';
   }
-  toast('✅ ' + files.length + ' image' + (files.length > 1 ? 's' : '') + ' uploadée' + (files.length > 1 ? 's' : '') + ' !');
+
+  input.value = '';
+  toast('✅ ' + files.length + ' image(s) ajoutée(s) !');
+  await loadProjectImages(); // rafraîchir la section galerie
 }
     async function doUploadImageMultiple(stageId, input) {
   var files = Array.from(input.files);
