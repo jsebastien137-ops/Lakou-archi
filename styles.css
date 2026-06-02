@@ -821,7 +821,7 @@ max-height: 100vh;
   line-height: 1.5;
   padding: 4px 0 6px;
 }
-atelier-post-pdf button {
+.atelier-post-pdf button {
   pointer-events: auto !important;
   cursor: pointer !important;
   position: relative;
