@@ -1083,15 +1083,24 @@
       <textarea id="proj-desc" class="field-input" rows="4" style="resize:none" placeholder="Decrivez votre projet..."></textarea>
       <div class="form-row">
         <div>
-          <label class="field-label">Niveau</label>
-          <select id="proj-level" class="field-select">
-            <option value="">Choisir</option>
-            <option value="L1">Licence 1</option>
-            <option value="L2">Licence 2</option>
-            <option value="L3">Licence 3</option>
-            <option value="M1">Master 1</option>
-            <option value="M2">Master 2</option>
-          </select>
+          <!-- APRÈS -->
+<label class="field-label">Niveau</label>
+<select id="proj-level" class="field-select">
+  <option value="">Choisir</option>
+  <optgroup label="— Années haïtiennes —">
+    <option value="A1">1ère année</option>
+    <option value="A2">2e année</option>
+    <option value="A3">3e année</option>
+    <option value="A4">4e année</option>
+  </optgroup>
+  <optgroup label="— International —">
+    <option value="L1">Licence 1</option>
+    <option value="L2">Licence 2</option>
+    <option value="L3">Licence 3</option>
+    <option value="M1">Master 1</option>
+    <option value="M2">Master 2</option>
+  </optgroup>
+</select>
         </div>
         <div>
           <label class="field-label">Annee academique</label>
@@ -1134,43 +1143,7 @@
     </div>
 
     <div class="form-section">
-      <h3 class="form-section-title">Informations du projet</h3>
-      <label class="field-label">Titre du projet *</label>
-      <div id="edit-project-title" class="field-display">—</div>
-      <label class="field-label">Architecte(s) ou firme</label>
-      <input id="edit-architects" type="text" class="field-input" placeholder="Ex: Jean Simon, Firme XYZ">
-      <small style="font-size:0.72rem;color:var(--gris);font-family:sans-serif">Separez plusieurs noms par une virgule</small>
-      <label class="field-label" style="margin-top:0.8rem">Superficie (m²)</label>
-      <input id="edit-area" type="number" class="field-input" placeholder="Ex: 250">
-      <label class="field-label">Annee academique</label>
-      <input id="edit-year" type="text" class="field-input" placeholder="Ex: 2024-2025">
-      <label class="field-label">Niveau</label>
-      <select id="edit-level" class="field-input">
-        <option value="">Selectionner</option>
-        <optgroup label="— Annees haitiennes —">
-          <option value="A1">1ere annee</option>
-          <option value="A2">2e annee</option>
-          <option value="A3">3e annee</option>
-          <option value="A4">4e annee</option>
-        </optgroup>
-        <optgroup label="— International —">
-          <option value="L1">Licence 1</option>
-          <option value="L2">Licence 2</option>
-          <option value="L3">Licence 3</option>
-          <option value="M1">Master 1</option>
-          <option value="M2">Master 2</option>
-        </optgroup>
-      </select>
-      <label class="field-label">Type de programme</label>
-      <input id="edit-program" type="text" class="field-input" placeholder="Ex: Residentiel, Hospitalier, Educatif">
-      <label class="field-label">Localisation</label>
-      <input id="edit-location" type="text" class="field-input" placeholder="Ex: Port-au-Prince, Haiti">
-      <label class="field-label">Description</label>
-      <textarea id="edit-description" class="field-input" rows="4" style="resize:none" placeholder="Decrivez le projet, le contexte, les objectifs..."></textarea>
-      <button class="btn-primary" style="width:100%;margin-top:1rem" onclick="doSaveProjectInfo()">
-        Enregistrer les informations
-      </button>
-    </div>
+    
 <div class="edit-section">
   <h4>Galerie du projet</h4>
   <div id="project-images-section"></div>
