@@ -69,13 +69,17 @@ async function loadProjectImages() {
     .order('order_index');
 
   var images = res.data || [];
-  var categories = [
-    { key: 'cover',   label: '🖼 Couverture' },
-    { key: 'plans',   label: '📐 Plans' },
-    { key: 'coupes',  label: '✂️ Coupes' },
-    { key: 'facades', label: '🏛 Façades' },
-    { key: 'other',   label: '📁 Autre' }
-  ];
+  // APRÈS — cover retiré, TD categories ajoutées
+var categories = [
+  { key: 'plan_masse', label: '🗺 Plan de masse' },
+  { key: 'niveaux',    label: '📐 Niveaux & Étages' },
+  { key: 'coupes',     label: '✂️ Coupes' },
+  { key: 'facades',    label: '🏛 Façades' },
+  { key: 'structure',  label: '⚙️ Structure' },
+  { key: 'rendus',     label: '🎨 Rendus' },
+  { key: 'plans',      label: '📐 Plans divers' },
+  { key: 'other',      label: '📁 Autre' }
+];
 
   var html = '<div class="gallery-upload-wrap">';
 
