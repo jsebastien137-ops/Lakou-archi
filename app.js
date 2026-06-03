@@ -789,7 +789,8 @@ if (!sessionStorage.getItem(viewedKey)) {
   await sb.rpc('increment_view_count', {project_id: projectId});
 }
   var res=await sb.from('projects').select('*, student:profiles!student_id(full_name), school:schools(name), stages:project_stages(*, images:stage_images(*))').eq('id',projectId).single();
-  var p=res.data;
+  var p = res.data;
+if (!p) return;   
   var coverEl = document.getElementById('detail-cover');
 if (coverEl) {
   if (p.cover_image_url) {
@@ -799,7 +800,7 @@ if (coverEl) {
     coverEl.style.display = 'none';
   }
 }
-  if(!p) return;
+  
   document.getElementById('detail-title').textContent=p.title;
   document.getElementById('detail-desc').textContent=p.description||'Aucune description.';
   if(p.level) document.getElementById('detail-level').textContent=p.level;
