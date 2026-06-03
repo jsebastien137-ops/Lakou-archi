@@ -684,7 +684,7 @@ async function loadStages() {
       }
       html+='</div>';
     }
-    html+='<label class="upload-zone"><p>'+(imgs.length>0?'+ Ajouter une image':'Deposez votre premiere image')+'</p><small>JPG, PNG, PDF</small><input type="file" class="upload-input" accept="image/*,.pdf" onchange="doUploadImageMultiple(('+JSON.stringify(s.id)+', this)"></label>';
+    html+='<label class="upload-zone"><p>'+(imgs.length>0?'+ Ajouter une image':'Deposez votre premiere image')+'</p><small>JPG, PNG, PDF</small><input type="file" class="upload-input" accept="image/*,.pdf" onchange="doUploadImageMultiple('+JSON.stringify(s.id)+', this)"></label>';
     html+='</div></div>';
   }
   list.innerHTML=html;
