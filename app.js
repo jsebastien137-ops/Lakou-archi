@@ -663,7 +663,8 @@ async function loadStages() {
   var res=await sb.from('project_stages').select('*, images:stage_images(*)').eq('project_id',currentProjectId).order('order_index');
   var stages=res.data||[];
   var list=document.getElementById('stage-list');
-  if(stages.length===0) {
+if (!list) return; 
+    if(stages.length===0) {
     list.innerHTML='<div style="border:2px dashed var(--gris-light);padding:2.5rem;text-align:center"><p style="font-size:0.82rem;color:var(--gris)">Aucune chambre. Ajoutez-en une a droite.</p></div>';
     return;
   }
