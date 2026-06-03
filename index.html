@@ -1059,9 +1059,8 @@
   <div class="profile-bio" id="dash-bio"></div>      
   <button class="avatar-remove" id="avatar-remove-btn" onclick="doAvatarRemove()">Supprimer la photo</button>
 </div>
-          <div class="profile-name" id="dash-fullname">-</div>
-          <div class="profile-email" id="dash-email">-</div>
-        </div>
+          
+      </div>
       </div>
     </div>
   </div>
@@ -1179,14 +1178,23 @@
 <div id="td-edit-section"></div>
 </div>
     
-    <div class="edit-body">
-      <p class="form-eyebrow">Edition du projet</p>
-      <div class="edit-grid">
-       
-         
-          <div id="submit-validation-area"></div>
-        </div>
-      </div>
+    <!-- APRÈS -->
+<div class="edit-body">
+  <p class="form-eyebrow">Edition du projet</p>
+
+  <div class="edit-section">
+    <h3 class="form-section-title">Étapes du projet</h3>
+    <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+      <select id="stage-type" class="field-input" style="flex:1;min-width:140px"></select>
+      <input id="stage-title" type="text" class="field-input" 
+             style="flex:2;min-width:160px" placeholder="Titre de l'étape">
+      <button class="btn-primary btn-sm" onclick="doAddStage()">+ Ajouter</button>
+    </div>
+    <div id="stage-list"></div>
+  </div>
+
+  <div id="submit-validation-area"></div>
+</div>
     </div>
 
   </div>
