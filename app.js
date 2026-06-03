@@ -665,8 +665,9 @@ async function loadStages() {
   var list=document.getElementById('stage-list');
 if (!list) return; 
     if(stages.length===0) {
-    list.innerHTML='<div style="border:2px dashed var(--gris-light);padding:2.5rem;text-align:center"><p style="font-size:0.82rem;color:var(--gris)">Aucune chambre. Ajoutez-en une a droite.</p></div>';
-    return;
+   
+        list.innerHTML='';
+        return;
   }
   var html='';
   for(var i=0;i<stages.length;i++) {
