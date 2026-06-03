@@ -627,37 +627,24 @@ async function openEditProject(projectId) {
 
 
 async function loadEditProject() {
-  var res=await sb.from('projects').select('*').eq('id',currentProjectId).single();
-  var project=res.data;
-  var titleEl=document.getElementById('edit-project-title');
-  if(titleEl) titleEl.textContent=project?project.title:'-';
-  if (project) {
-    var archEl = document.getElementById('edit-architects');
-    var areaEl = document.getElementById('edit-area');
-    var yearEl = document.getElementById('edit-year');
-    var levelEl = document.getElementById('edit-level');
-    var programEl = document.getElementById('edit-program');
-    var locationEl = document.getElementById('edit-location');
-    var descEl = document.getElementById('edit-description');
-    if (archEl) archEl.value = project.architects || '';
-    if (areaEl) areaEl.value = project.area || '';
-    if (yearEl) yearEl.value = project.academic_year || '';
-    if (levelEl) levelEl.value = project.level || '';
-    if (programEl) programEl.value = project.program_type || '';
-    if (locationEl) locationEl.value = project.location || '';
-    if (descEl) descEl.value = project.description || '';
+  var res = await sb.from('projects').select('*').eq('id', currentProjectId).single();
+  var project = res.data;
+
+  var titleEl = document.getElementById('edit-project-title');
+  if (titleEl) titleEl.textContent = project ? project.title : '-';
+
+  var area = document.getElementById('submit-validation-area');
+  if (project && project.status === 'draft') {
+    area.innerHTML = '<div class="submit-card"><p class="submit-card-title">Pret a soumettre ?</p><p class="submit-card-desc">Une fois soumis, votre projet sera examine par un enseignant avant publication.</p><button class="form-btn" style="width:100%" onclick="doSubmitValidation()">Soumettre pour validation</button></div>';
+  } else if (project && project.status === 'pending') {
+    area.innerHTML = '<div class="pending-card"><p>En attente de validation par un enseignant.</p></div>';
+  } else if (project && project.status === 'approved') {
+    area.innerHTML = '<div class="pending-card" style="background:#edf7ed;border-color:#a8d4a8"><p style="color:#2a6b2a">Projet approuve et publie.</p></div>';
   }
-  var area=document.getElementById('submit-validation-area');
-  if(project&&project.status==='draft') {
-    area.innerHTML='<div class="submit-card"><p class="submit-card-title">Pret a soumettre ?</p><p class="submit-card-desc">Une fois soumis, votre projet sera examine par un enseignant avant publication.</p><button class="form-btn" style="width:100%" onclick="doSubmitValidation()">Soumettre pour validation</button></div>';
-  } else if(project&&project.status==='pending') {
-    area.innerHTML='<div class="pending-card"><p>En attente de validation par un enseignant.</p></div>';
-  } else if(project&&project.status==='approved') {
-    area.innerHTML='<div class="pending-card" style="background:#edf7ed;border-color:#a8d4a8"><p style="color:#2a6b2a">Projet approuve et publie.</p></div>';
-  }
+
   await loadStages();
-await loadProjectImages();
-await loadTechnicalDossierEdit();   // ← nouveau formulaire livret côté édition ← AJOUT
+  await loadProjectImages();
+  await loadTechnicalDossierEdit();
 }
 async function loadStages() {
   var res=await sb.from('project_stages').select('*, images:stage_images(*)').eq('project_id',currentProjectId).order('order_index');
