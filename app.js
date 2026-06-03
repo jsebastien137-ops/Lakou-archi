@@ -1015,7 +1015,174 @@ function saveTechnicalDossier() {
   // Ce bouton sert de confirmation visuelle + point d'extension futur.
   toast('Dossier sauvegardé ! Toutes les images sont enregistrées.');
 }
+// LIVRET TECHNIQUE — Formulaire d'édition (page edit-project)
+// Insérer AVANT loadTechnicalDossier()
+// ═══════════════════════════════════════════════════════════
 
+async function loadTechnicalDossierEdit() {
+  if (!currentProjectId) return;
+  var container = document.getElementById('td-edit-section');
+  if (!container) return;
+
+  // Charger les images existantes du dossier technique
+  var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
+  var res = await sb.from('project_images')
+    .select('*')
+    .eq('project_id', currentProjectId)
+    .in('category', tdKeys)
+    .order('category').order('order_index');
+  var images = res.data || [];
+
+  var html = '<div class="livret-form-wrap">';
+  html += '<h3 class="livret-section-title">📋 Dossier Technique — Dépôt des planches</h3>';
+
+  // ── Question niveaux ──────────────────────────────────────
+  var niveauImgs = images.filter(function(i){ return i.category === 'niveaux'; });
+  var defaultLvl = Math.max(niveauImgs.length, 1);
+
+  html += '<div class="livret-question-block">';
+  html += '<label class="livret-label">Combien de niveaux / étages comporte votre projet ?</label>';
+  html += '<select id="td-niveaux-count" class="form-select livret-niveaux-select" '
+        + 'onchange="tdRenderNiveauxBlocks(parseInt(this.value))">';
+  for (var n = 1; n <= 5; n++) {
+    html += '<option value="' + n + '"' + (n === defaultLvl ? ' selected' : '') + '>'
+          + n + (n > 1 ? ' niveaux' : ' niveau') + '</option>';
+  }
+  html += '</select></div>';
+
+  // ── Sections dynamiques ───────────────────────────────────
+  TD_SECTIONS.forEach(function(section) {
+    var catImgs = images.filter(function(i){ return i.category === section.key; });
+    var isMulti = (section.key !== 'plan_masse');
+    var count   = isMulti ? defaultLvl : 1;
+
+    html += '<div class="livret-cat-section" id="td-cat-' + section.key + '">';
+    html += '<div class="livret-cat-title">' + section.icon + ' ' + section.label + '</div>';
+    html += '<div class="livret-blocks-wrap" id="td-blocks-' + section.key + '">';
+
+    for (var i = 0; i < count; i++) {
+      html += tdBuildBlock(section, i, catImgs[i] || null);
+    }
+
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function tdBuildBlock(section, index, existing) {
+  var blockId  = 'tdblk-' + section.key + '-' + index;
+  var hasImg   = !!(existing && existing.url);
+  var label    = section.key === 'plan_masse' ? 'Vue unique'
+               : section.key === 'niveaux'    ? 'Niveau ' + (index + 1)
+               : 'Vue ' + (index + 1);
+
+  var html = '<div class="sheet-block" id="' + blockId + '">';
+  html += '<div class="sheet-block-header">' + label + '</div>';
+
+  // Prévisualisation
+  if (hasImg) {
+    var esc = existing.url.replace(/'/g, "\\'");
+    var alt = (existing.alt_text || '').replace(/'/g, "\\'");
+    html += '<div class="sheet-preview" id="prev-' + blockId + '">';
+    html += '<img src="' + existing.url + '" onclick="openLightbox(\'' + esc + '\')" alt="">';
+    html += '<button class="sheet-del-btn" '
+          + 'onclick="tdDeleteImageEdit(\'' + existing.id + '\')" title="Supprimer">✕</button>';
+    html += '</div>';
+  } else {
+    html += '<div class="sheet-preview hidden" id="prev-' + blockId + '"></div>';
+  }
+
+  // Champ étiquette / échelle
+  html += '<div class="sheet-fields">';
+  html += '<input type="text" class="form-input sheet-scale" id="lbl-' + blockId + '" '
+        + 'placeholder="' + (section.labelHint || 'Étiquette / Échelle (ex: 1:100)') + '" '
+        + 'value="' + (existing ? (existing.alt_text || '') : '') + '">';
+  html += '</div>';
+
+  // Bouton upload
+  html += '<label class="sheet-upload-zone" for="file-' + blockId + '">';
+  html += '<span>' + (hasImg ? '🔄 Remplacer' : '📎 Ajouter une image') + '</span>';
+  html += '<small>JPG · PNG · compression auto</small>';
+  html += '<input type="file" id="file-' + blockId + '" accept="image/*" style="display:none" '
+        + 'onchange="tdUploadEdit(\'' + section.key + '\',' + index + ',\'' + (existing ? existing.id : '') + '\',this)">';
+  html += '</label>';
+
+  html += '</div>';
+  return html;
+}
+function tdRenderNiveauxBlocks(count) {
+  TD_SECTIONS.forEach(function(section) {
+    if (section.key === 'plan_masse') return; // jamais multiple
+    var wrap = document.getElementById('td-blocks-' + section.key);
+    if (!wrap) return;
+    var blocks = wrap.querySelectorAll('.sheet-block');
+    // Ajouter les blocs manquants
+    for (var i = blocks.length; i < count; i++) {
+      var tmp = document.createElement('div');
+      tmp.innerHTML = tdBuildBlock(section, i, null);
+      wrap.appendChild(tmp.firstChild);
+    }
+    // Masquer/afficher
+    var all = wrap.querySelectorAll('.sheet-block');
+    for (var j = 0; j < all.length; j++) {
+      all[j].style.display = j < count ? '' : 'none';
+    }
+  });
+}
+
+async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
+  var file = inputEl.files[0]; if (!file) return;
+  var blockId  = 'tdblk-' + sectionKey + '-' + index;
+  var labelVal = (document.getElementById('lbl-' + blockId) || {}).value || '';
+
+  toast('Compression en cours…');
+  inputEl.value = '';
+
+  tdCompress(file, async function(compressed) {
+    // Rafraîchir la session (résistance aux coupures mobile)
+    var sess = await sb.auth.getSession();
+    if (!sess.data.session) { toast('Session expirée, reconnectez-vous.', 'error'); return; }
+
+    var ext  = compressed.name.split('.').pop().toLowerCase();
+    var path = 'td/' + currentProjectId + '/' + sectionKey + '/' + index + '_' + Date.now() + '.' + ext;
+
+    var up = await sb.storage.from('project-images').upload(path, compressed, { upsert: true });
+    if (up.error) { toast('Erreur upload : ' + up.error.message, 'error'); return; }
+
+    var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
+
+    // Compter pour order_index
+    var cntR = await sb.from('project_images')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', currentProjectId).eq('category', sectionKey);
+
+    // Supprimer l'ancienne image si elle existe
+    if (oldImageId) {
+      await sb.from('project_images').delete().eq('id', oldImageId);
+    }
+
+    var ins = await sb.from('project_images').insert({
+      project_id: currentProjectId,
+      url: url,
+      category: sectionKey,
+      order_index: index,
+      alt_text: labelVal || null,
+      file_size: compressed.size
+    });
+    if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); return; }
+
+    toast('Planche enregistrée !');
+    await loadTechnicalDossierEdit(); // rafraîchir le formulaire
+  });
+}
+async function tdDeleteImageEdit(imageId) {
+  if (!confirm('Supprimer cette planche ?')) return;
+  await sb.from('project_images').delete().eq('id', imageId);
+  toast('Planche supprimée.');
+  await loadTechnicalDossierEdit();
+}
 // ─── Rendu principal ──────────────────────────────────────────────
 async function loadTechnicalDossier(projectId) {
   var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
@@ -3801,176 +3968,11 @@ function openLivretLightbox(url, desc, scale) {
   document.body.appendChild(overlay);
 }
 // ═══════════════════════════════════════════════════════════
-// LIVRET TECHNIQUE — Formulaire d'édition (page edit-project)
-// Insérer AVANT loadTechnicalDossier()
-// ═══════════════════════════════════════════════════════════
 
-async function loadTechnicalDossierEdit() {
-  if (!currentProjectId) return;
-  var container = document.getElementById('td-edit-section');
-  if (!container) return;
 
-  // Charger les images existantes du dossier technique
-  var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
-  var res = await sb.from('project_images')
-    .select('*')
-    .eq('project_id', currentProjectId)
-    .in('category', tdKeys)
-    .order('category').order('order_index');
-  var images = res.data || [];
 
-  var html = '<div class="livret-form-wrap">';
-  html += '<h3 class="livret-section-title">📋 Dossier Technique — Dépôt des planches</h3>';
 
-  // ── Question niveaux ──────────────────────────────────────
-  var niveauImgs = images.filter(function(i){ return i.category === 'niveaux'; });
-  var defaultLvl = Math.max(niveauImgs.length, 1);
 
-  html += '<div class="livret-question-block">';
-  html += '<label class="livret-label">Combien de niveaux / étages comporte votre projet ?</label>';
-  html += '<select id="td-niveaux-count" class="form-select livret-niveaux-select" '
-        + 'onchange="tdRenderNiveauxBlocks(parseInt(this.value))">';
-  for (var n = 1; n <= 5; n++) {
-    html += '<option value="' + n + '"' + (n === defaultLvl ? ' selected' : '') + '>'
-          + n + (n > 1 ? ' niveaux' : ' niveau') + '</option>';
-  }
-  html += '</select></div>';
-
-  // ── Sections dynamiques ───────────────────────────────────
-  TD_SECTIONS.forEach(function(section) {
-    var catImgs = images.filter(function(i){ return i.category === section.key; });
-    var isMulti = (section.key !== 'plan_masse');
-    var count   = isMulti ? defaultLvl : 1;
-
-    html += '<div class="livret-cat-section" id="td-cat-' + section.key + '">';
-    html += '<div class="livret-cat-title">' + section.icon + ' ' + section.label + '</div>';
-    html += '<div class="livret-blocks-wrap" id="td-blocks-' + section.key + '">';
-
-    for (var i = 0; i < count; i++) {
-      html += tdBuildBlock(section, i, catImgs[i] || null);
-    }
-
-    html += '</div></div>';
-  });
-
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function tdBuildBlock(section, index, existing) {
-  var blockId  = 'tdblk-' + section.key + '-' + index;
-  var hasImg   = !!(existing && existing.url);
-  var label    = section.key === 'plan_masse' ? 'Vue unique'
-               : section.key === 'niveaux'    ? 'Niveau ' + (index + 1)
-               : 'Vue ' + (index + 1);
-
-  var html = '<div class="sheet-block" id="' + blockId + '">';
-  html += '<div class="sheet-block-header">' + label + '</div>';
-
-  // Prévisualisation
-  if (hasImg) {
-    var esc = existing.url.replace(/'/g, "\\'");
-    var alt = (existing.alt_text || '').replace(/'/g, "\\'");
-    html += '<div class="sheet-preview" id="prev-' + blockId + '">';
-    html += '<img src="' + existing.url + '" onclick="openLightbox(\'' + esc + '\')" alt="">';
-    html += '<button class="sheet-del-btn" '
-          + 'onclick="tdDeleteImageEdit(\'' + existing.id + '\')" title="Supprimer">✕</button>';
-    html += '</div>';
-  } else {
-    html += '<div class="sheet-preview hidden" id="prev-' + blockId + '"></div>';
-  }
-
-  // Champ étiquette / échelle
-  html += '<div class="sheet-fields">';
-  html += '<input type="text" class="form-input sheet-scale" id="lbl-' + blockId + '" '
-        + 'placeholder="' + (section.labelHint || 'Étiquette / Échelle (ex: 1:100)') + '" '
-        + 'value="' + (existing ? (existing.alt_text || '') : '') + '">';
-  html += '</div>';
-
-  // Bouton upload
-  html += '<label class="sheet-upload-zone" for="file-' + blockId + '">';
-  html += '<span>' + (hasImg ? '🔄 Remplacer' : '📎 Ajouter une image') + '</span>';
-  html += '<small>JPG · PNG · compression auto</small>';
-  html += '<input type="file" id="file-' + blockId + '" accept="image/*" style="display:none" '
-        + 'onchange="tdUploadEdit(\'' + section.key + '\',' + index + ',\'' + (existing ? existing.id : '') + '\',this)">';
-  html += '</label>';
-
-  html += '</div>';
-  return html;
-}
-
-function tdRenderNiveauxBlocks(count) {
-  TD_SECTIONS.forEach(function(section) {
-    if (section.key === 'plan_masse') return; // jamais multiple
-    var wrap = document.getElementById('td-blocks-' + section.key);
-    if (!wrap) return;
-    var blocks = wrap.querySelectorAll('.sheet-block');
-    // Ajouter les blocs manquants
-    for (var i = blocks.length; i < count; i++) {
-      var tmp = document.createElement('div');
-      tmp.innerHTML = tdBuildBlock(section, i, null);
-      wrap.appendChild(tmp.firstChild);
-    }
-    // Masquer/afficher
-    var all = wrap.querySelectorAll('.sheet-block');
-    for (var j = 0; j < all.length; j++) {
-      all[j].style.display = j < count ? '' : 'none';
-    }
-  });
-}
-
-async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
-  var file = inputEl.files[0]; if (!file) return;
-  var blockId  = 'tdblk-' + sectionKey + '-' + index;
-  var labelVal = (document.getElementById('lbl-' + blockId) || {}).value || '';
-
-  toast('Compression en cours…');
-  inputEl.value = '';
-
-  tdCompress(file, async function(compressed) {
-    // Rafraîchir la session (résistance aux coupures mobile)
-    var sess = await sb.auth.getSession();
-    if (!sess.data.session) { toast('Session expirée, reconnectez-vous.', 'error'); return; }
-
-    var ext  = compressed.name.split('.').pop().toLowerCase();
-    var path = 'td/' + currentProjectId + '/' + sectionKey + '/' + index + '_' + Date.now() + '.' + ext;
-
-    var up = await sb.storage.from('project-images').upload(path, compressed, { upsert: true });
-    if (up.error) { toast('Erreur upload : ' + up.error.message, 'error'); return; }
-
-    var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
-
-    // Compter pour order_index
-    var cntR = await sb.from('project_images')
-      .select('id', { count: 'exact', head: true })
-      .eq('project_id', currentProjectId).eq('category', sectionKey);
-
-    // Supprimer l'ancienne image si elle existe
-    if (oldImageId) {
-      await sb.from('project_images').delete().eq('id', oldImageId);
-    }
-
-    var ins = await sb.from('project_images').insert({
-      project_id: currentProjectId,
-      url: url,
-      category: sectionKey,
-      order_index: index,
-      alt_text: labelVal || null,
-      file_size: compressed.size
-    });
-    if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); return; }
-
-    toast('Planche enregistrée !');
-    await loadTechnicalDossierEdit(); // rafraîchir le formulaire
-  });
-}
-
-async function tdDeleteImageEdit(imageId) {
-  if (!confirm('Supprimer cette planche ?')) return;
-  await sb.from('project_images').delete().eq('id', imageId);
-  toast('Planche supprimée.');
-  await loadTechnicalDossierEdit();
-}
 // ---- Affichage Dossier Technique (page projet) ----
 async function loadLivretDetail(projectId) {
   var container = document.getElementById('livret-detail-section');
