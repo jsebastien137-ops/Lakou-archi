@@ -1411,7 +1411,22 @@ async function doToggleLike() {
   var btn=document.getElementById('like-btn');
   btn.classList.toggle('liked');
 }
-
+1. TD_SECTIONS (la variable)
+2. tdCompress()
+3. tdUploadImage()
+4. tdHandleUpload()
+5. tdDeleteImage()
+6. tdToggleLike()
+7. tdLoadComments()
+8. tdPostComment()
+9. tdDeleteComment()
+10. saveTechnicalDossier()
+11. loadTechnicalDossierEdit()   ← le bloc du document session 2
+12. tdBuildBlock()
+13. tdRenderNiveauxBlocks()
+14. tdUploadEdit()
+15. tdDeleteImageEdit()
+16. loadTechnicalDossier()       ← la version lecture seule session 2
 async function loadValidationQueue() {
   if(!currentProfile||(currentProfile.role!=='teacher'&&currentProfile.role!=='admin')) { showPage('dashboard'); return; }
   var res=await sb.from('projects').select('*, student:profiles!student_id(full_name), school:schools(name)').eq('status','pending').order('created_at',{ascending:true});
