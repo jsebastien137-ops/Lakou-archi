@@ -1251,6 +1251,95 @@ async function loadTechnicalDossier(projectId) {
   html += '<div id="td-comments-list" style="margin-bottom:1.25rem"></div>';
   if (currentUser) {
     html += '<div style="display:flex;gap:0.5rem;align-items:flex-end">';
+async function loadTechnicalDossier(projectId) {
+  // ── Toutes les images du projet, sans filtre de catégorie ──
+  var res = await sb.from('project_images')
+    .select('*')
+    .eq('project_id', projectId)
+    .neq('category', 'cover')       // la cover est déjà dans le hero
+    .order('category')
+    .order('order_index');
+  var images = res.data || [];
+
+  var container = document.getElementById('td-section');
+  if (!container) return;
+
+  // Labels pour toutes les catégories possibles
+  var SECTION_MAP = {
+    plan_masse : { label: 'Plan de masse / Implantation', icon: '🗺'  },
+    niveaux    : { label: 'Niveaux & Étages',             icon: '📐'  },
+    coupes     : { label: 'Coupes',                       icon: '✂️'  },
+    facades    : { label: 'Façades',                      icon: '🏛'  },
+    structure  : { label: 'Structure',                    icon: '⚙️'  },
+    rendus     : { label: 'Rendus',                       icon: '🎨'  },
+    plans      : { label: 'Plans divers',                 icon: '📐'  },
+    other      : { label: 'Autres documents',             icon: '📁'  }
+  };
+
+  // Ordre d'affichage : TD_SECTIONS en premier, extras ensuite
+  var tdOrder = ['plan_masse','niveaux','coupes','facades','structure','rendus','plans','other'];
+  var foundKeys = [];
+  images.forEach(function(im) {
+    if (foundKeys.indexOf(im.category) === -1) foundKeys.push(im.category);
+  });
+  var orderedKeys = [];
+  tdOrder.forEach(function(k) { if (foundKeys.indexOf(k) !== -1) orderedKeys.push(k); });
+  foundKeys.forEach(function(k) { if (orderedKeys.indexOf(k) === -1) orderedKeys.push(k); });
+
+  var html = '<div style="max-width:860px;margin:3.5rem auto 0;padding:0 1.25rem 5rem">';
+
+  if (images.length > 0) {
+    // En-tête dossier
+    html += '<div style="margin-bottom:3.5rem;padding-bottom:0.75rem;border-bottom:2px solid rgba(160,120,70,0.15)">';
+    html += '<h2 style="font-size:0.95rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;'
+          + 'color:#2c1a0e;margin:0;font-family:var(--font-serif,Georgia,serif)">Dossier Technique</h2>';
+    html += '</div>';
+
+    orderedKeys.forEach(function(key) {
+      var sectionImgs = images.filter(function(im) { return im.category === key; });
+      if (sectionImgs.length === 0) return;
+      var info = SECTION_MAP[key] || { label: key, icon: '📄' };
+
+      html += '<div style="margin-bottom:2.75rem">';
+      html += '<div style="font-size:0.73rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;'
+            + 'color:var(--terre,#8B4513);font-family:sans-serif;padding-bottom:0.4rem;'
+            + 'border-bottom:1px solid rgba(160,120,70,0.18);margin-bottom:0.9rem">'
+            + info.icon + '\u00a0' + info.label + '</div>';
+
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0.6rem">';
+      sectionImgs.forEach(function(img) {
+        var safeUrl = img.url.replace(/'/g, "\\'");
+        html += '<div style="position:relative;border-radius:5px;overflow:hidden;background:#ede8e1;aspect-ratio:4/3">';
+        html += '<img src="' + img.url + '" alt="' + (img.alt_text || '') + '" '
+              + 'onclick="openLightbox(\'' + safeUrl + '\')" draggable="false" '
+              + 'style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block;'
+              + 'transition:opacity 0.18s" '
+              + 'onmouseover="this.style.opacity=\'0.86\'" onmouseout="this.style.opacity=\'1\'">';
+        if (img.alt_text) {
+          html += '<div style="position:absolute;bottom:0;left:0;right:0;'
+                + 'background:linear-gradient(transparent,rgba(20,10,4,0.72));'
+                + 'padding:0.22rem 0.4rem;font-size:0.6rem;color:#fff;font-family:sans-serif;'
+                + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                + img.alt_text + '</div>';
+        }
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+  }
+
+  // ── Like + Commentaires — toujours présents ──────────────
+  html += '<div style="border-top:1px solid rgba(160,120,70,0.18);padding-top:2rem;margin-top:0.5rem">';
+  html += '<div style="margin-bottom:1.75rem;display:flex;align-items:center;gap:1rem">';
+  html += '<button id="like-btn" onclick="doToggleLike()" '
+        + 'style="background:none;border:1px solid rgba(160,120,70,0.28);padding:0.38rem 1.1rem;'
+        + 'border-radius:20px;font-size:0.82rem;cursor:pointer;color:#2c1a0e;font-family:sans-serif;'
+        + 'display:inline-flex;align-items:center;gap:0.3rem;transition:background 0.18s">'
+        + '♥ <span id="like-count">…</span></button>';
+  html += '</div>';
+  html += '<div id="td-comments-list" style="margin-bottom:1.25rem"></div>';
+  if (currentUser) {
+    html += '<div style="display:flex;gap:0.5rem;align-items:flex-end">';
     html += '<textarea id="td-comment-input" rows="2" placeholder="Votre commentaire…" '
           + 'style="flex:1;padding:0.52rem 0.68rem;font-size:0.79rem;border:1px solid rgba(160,120,70,0.22);'
           + 'border-radius:5px;resize:vertical;font-family:sans-serif;color:#2c1a0e;'
@@ -1261,18 +1350,17 @@ async function loadTechnicalDossier(projectId) {
           + 'white-space:nowrap;align-self:flex-end">Commenter</button>';
     html += '</div>';
   } else {
-    html += '<p style="font-size:0.76rem;color:var(--gris,#aaa);font-family:sans-serif;font-style:italic;margin:0">Connectez-vous pour commenter.</p>';
+    html += '<p style="font-size:0.76rem;color:var(--gris,#aaa);font-family:sans-serif;'
+          + 'font-style:italic;margin:0">Connectez-vous pour commenter.</p>';
   }
-
-  html += '</div>'; // fin interactions
-  html += '</div>'; // fin wrapper
+  html += '</div></div>';
 
   container.innerHTML = html;
 
-  // Synchro like count
+  // Sync like count
   var cnt = await sb.from('likes').select('*', { count: 'exact', head: true }).eq('project_id', projectId);
   var lbl = (cnt.count || 0) + ' like(s)';
-  var el  = document.getElementById('like-count'); if (el) el.textContent = lbl;
+  var el = document.getElementById('like-count'); if (el) el.textContent = lbl;
 
   if (currentUser) {
     var ul = await sb.from('likes').select('id')
@@ -1282,7 +1370,6 @@ async function loadTechnicalDossier(projectId) {
       if (btn) btn.style.background = 'rgba(160,120,70,0.12)';
     }
   }
-
   await tdLoadComments();
 }
 async function doToggleLike() {
