@@ -772,68 +772,85 @@ async function doSubmitValidation() {
   toast('Projet publie !');
   await loadEditProject();
 }
+
 async function openProjectDetail(projectId) {
   if (!currentUser) { showPage('login'); return; }
-    currentProjectId=projectId;
+  currentProjectId = projectId;
   showPage('project-detail');
+
   var viewedKey = 'viewed_' + projectId;
-if (!sessionStorage.getItem(viewedKey)) {
-  sessionStorage.setItem(viewedKey, '1');
-  await sb.rpc('increment_view_count', {project_id: projectId});
-}
-  var res=await sb.from('projects').select('*, student:profiles!student_id(full_name), school:schools(name), stages:project_stages(*, images:stage_images(*))').eq('id',projectId).single();
+  if (!sessionStorage.getItem(viewedKey)) {
+    sessionStorage.setItem(viewedKey, '1');
+    await sb.rpc('increment_view_count', { project_id: projectId });
+  }
+
+  var res = await sb.from('projects')
+    .select('*, student:profiles!student_id(full_name), school:schools(name), stages:project_stages(*, images:stage_images(*))')
+    .eq('id', projectId)
+    .single();
   var p = res.data;
-if (!p) return;   
+  if (!p) return;
+
+  // Cover + lightbox au clic
   var coverEl = document.getElementById('detail-cover');
-if (coverEl) {
-  if (p.cover_image_url) {
-    coverEl.src = p.cover_image_url;
-    coverEl.style.display = 'block';
-  } else {
-    coverEl.style.display = 'none';
-  }
-}
-  
-  document.getElementById('detail-title').textContent=p.title;
-  document.getElementById('detail-desc').textContent=p.description||'Aucune description.';
-  if(p.level) document.getElementById('detail-level').textContent=p.level;
-  document.getElementById('detail-status').innerHTML=statusBadge(p.status);
-  var meta='';
-  if(p.student) meta+='<span><strong>Etudiant</strong> '+p.student.full_name+'</span>';
-  if(p.school) meta+='<span><strong>Ecole</strong> '+p.school.name+'</span>';
-  if(p.academic_year) meta+='<span><strong>Annee</strong> '+p.academic_year+'</span>';
-  meta+='<span><strong>Vues</strong> '+(p.view_count||0)+'</span>';
-  document.getElementById('detail-meta').innerHTML=meta;
-  var stages=(p.stages||[]).sort(function(a,b){return a.order_index-b.order_index;});
-  var tl=document.getElementById('detail-timeline');
-  if(stages.length===0) {
-    tl.innerHTML='<p style="color:var(--gris);font-size:0.85rem">Aucune etape pour ce projet.</p>';
-  } else {
-    var html='';
-    for(var i=0;i<stages.length;i++) {
-      var s=stages[i];
-      var imgs=s.images||[];
-      html+='<div class="timeline-stage">';
-      html+='<div class="timeline-stage-header"><div><div class="timeline-stage-type">'+(STAGE_LABELS[s.stage_type]||s.stage_type)+'</div><div class="timeline-stage-title">'+s.title+'</div></div></div>';
-      html+='<div class="timeline-stage-body">';
-      if(imgs.length>0) {
-        html+='<div class="timeline-imgs">';
-        for(var j=0;j<imgs.length;j++) {
-          html+='<div class="timeline-img" onclick="openLightbox('+JSON.stringify(imgs[j].url)+')"><img src="'+imgs[j].url+'" alt="" draggable="false"></div>';
-        }
-        html+='</div>';
-      } else {
-        html+='<p style="font-size:0.8rem;color:var(--gris);font-style:italic">Aucune image pour cette etape.</p>';
-      }
-      if(s.description) html+='<p class="timeline-stage-desc">'+s.description+'</p>';
-      html+='</div></div>';
+  if (coverEl) {
+    if (p.cover_image_url) {
+      coverEl.src           = p.cover_image_url;
+      coverEl.style.display = 'block';
+      coverEl.style.cursor  = 'zoom-in';
+      coverEl.onclick = function() {
+        openLivretLightbox(p.cover_image_url, p.title, '');
+      };
+    } else {
+      coverEl.style.display = 'none';
     }
-    tl.innerHTML=html;
   }
 
-  await loadTechnicalDossier(projectId);
-}
+  document.getElementById('detail-title').textContent = p.title;
+  document.getElementById('detail-desc').textContent  = p.description || 'Aucune description.';
+  if (p.level) document.getElementById('detail-level').textContent = p.level;
+  document.getElementById('detail-status').innerHTML = statusBadge(p.status);
 
+  var meta = '';
+  if (p.student)       meta += '<span><strong>Etudiant</strong> ' + p.student.full_name + '</span>';
+  if (p.school)        meta += '<span><strong>Ecole</strong> '    + p.school.name       + '</span>';
+  if (p.academic_year) meta += '<span><strong>Annee</strong> '    + p.academic_year     + '</span>';
+  meta += '<span><strong>Vues</strong> ' + (p.view_count || 0) + '</span>';
+  document.getElementById('detail-meta').innerHTML = meta;
+
+  var stages = (p.stages || []).sort(function(a, b) { return a.order_index - b.order_index; });
+  var tl = document.getElementById('detail-timeline');
+  if (stages.length === 0) {
+    tl.innerHTML = '<p style="color:var(--gris);font-size:0.85rem">Aucune etape pour ce projet.</p>';
+  } else {
+    var html = '';
+    for (var i = 0; i < stages.length; i++) {
+      var s    = stages[i];
+      var imgs = s.images || [];
+      html += '<div class="timeline-stage">';
+      html += '<div class="timeline-stage-header"><div><div class="timeline-stage-type">' + (STAGE_LABELS[s.stage_type] || s.stage_type) + '</div><div class="timeline-stage-title">' + s.title + '</div></div></div>';
+      html += '<div class="timeline-stage-body">';
+      if (imgs.length > 0) {
+        html += '<div class="timeline-imgs">';
+        for (var j = 0; j < imgs.length; j++) {
+          var safeImgUrl = imgs[j].url.replace(/'/g, "\\'");
+          html += '<div class="timeline-img" onclick="openLivretLightbox(\'' + safeImgUrl + '\',\'\',\'\')" style="cursor:zoom-in"><img src="' + imgs[j].url + '" alt="" draggable="false"></div>';
+        }
+        html += '</div>';
+      } else {
+        html += '<p style="font-size:0.8rem;color:var(--gris);font-style:italic">Aucune image pour cette etape.</p>';
+      }
+      if (s.description) html += '<p class="timeline-stage-desc">' + s.description + '</p>';
+      html += '</div></div>';
+    }
+    tl.innerHTML = html;
+  }
+
+  // Mission 2 : toutes les images project_images (Dossier Technique)
+  await loadTechnicalDossier(projectId);
+  // Mission 2 : toutes les planches project_sheets (Livret Technique)
+  await loadLivretDetail(projectId);
+}
 // ═══════════════════════════════════════════════════════════════════
 // DOSSIER TECHNIQUE — Fonctions autonomes (préfixe td-)
 // ═══════════════════════════════════════════════════════════════════
@@ -1141,7 +1158,6 @@ async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
   inputEl.value = '';
 
   tdCompress(file, async function(compressed) {
-    // Rafraîchir la session (résistance aux coupures mobile)
     var sess = await sb.auth.getSession();
     if (!sess.data.session) { toast('Session expirée, reconnectez-vous.', 'error'); return; }
 
@@ -1153,12 +1169,10 @@ async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
 
     var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
 
-    // Compter pour order_index
     var cntR = await sb.from('project_images')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', currentProjectId).eq('category', sectionKey);
 
-    // Supprimer l'ancienne image si elle existe
     if (oldImageId) {
       await sb.from('project_images').delete().eq('id', oldImageId);
     }
@@ -1174,14 +1188,32 @@ async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
     if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); return; }
 
     toast('Planche enregistrée !');
-    await loadTechnicalDossierEdit(); // rafraîchir le formulaire
+    // Mémoriser le nombre de niveaux AVANT le rechargement
+    var savedNiveaux = parseInt((document.getElementById('td-niveaux-count') || {}).value || '0');
+    await loadTechnicalDossierEdit();
+    // Restaurer si l'utilisateur avait choisi plus que le défaut calculé
+    if (savedNiveaux > 1) {
+      var nSel = document.getElementById('td-niveaux-count');
+      if (nSel && parseInt(nSel.value) !== savedNiveaux) {
+        nSel.value = savedNiveaux;
+        tdRenderNiveauxBlocks(savedNiveaux);
+      }
+    }
   });
 }
 async function tdDeleteImageEdit(imageId) {
   if (!confirm('Supprimer cette planche ?')) return;
+  var savedNiveaux = parseInt((document.getElementById('td-niveaux-count') || {}).value || '0');
   await sb.from('project_images').delete().eq('id', imageId);
   toast('Planche supprimée.');
   await loadTechnicalDossierEdit();
+  if (savedNiveaux > 1) {
+    var nSel = document.getElementById('td-niveaux-count');
+    if (nSel && parseInt(nSel.value) !== savedNiveaux) {
+      nSel.value = savedNiveaux;
+      tdRenderNiveauxBlocks(savedNiveaux);
+    }
+  }
 }
 
       
@@ -1243,10 +1275,11 @@ async function loadTechnicalDossier(projectId) {
       html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0.6rem">';
       sectionImgs.forEach(function(img) {
         var safeUrl = img.url.replace(/'/g, "\\'");
-        html += '<div style="position:relative;border-radius:5px;overflow:hidden;background:#ede8e1;aspect-ratio:4/3">';
+        var safeAlt = (img.alt_text || '').replace(/'/g, "\\'");
+        html += '<div style="position:relative;border-radius:5px;overflow:hidden;background:#ede8e1;aspect-ratio:4/3;cursor:zoom-in" onclick="openLivretLightbox(\'' + safeUrl + '\',\'' + safeAlt + '\',\'\')">';
         html += '<img src="' + img.url + '" alt="' + (img.alt_text || '') + '" '
-              + 'onclick="openLightbox(\'' + safeUrl + '\')" draggable="false" '
-              + 'style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block;'
+              + 'draggable="false" '
+              + 'style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;'
               + 'transition:opacity 0.18s" '
               + 'onmouseover="this.style.opacity=\'0.86\'" onmouseout="this.style.opacity=\'1\'">';
         if (img.alt_text) {
@@ -2274,69 +2307,55 @@ var res = await query;
   }
 }
 loadHomeRecentProjects();
-async function loadGalerie() {
-  var targetId = currentGalerieUserId || currentUser.id;
-  var isOwnGallery = targetId === currentUser.id;
 
-  // Titre dynamique
-  var titleEl = document.querySelector('#page-galerie h1');
-  var subtitleEl = document.querySelector('#page-galerie p');
+
+async function loadGalerie() {
+  if (!currentUser) { showPage('login'); return; }
+
+  var targetId   = currentGalerieUserId || currentUser.id;
+  var isOwnGallery = targetId === currentUser.id;
 
   var grid = document.getElementById('galerie-grid');
   if (grid) grid.innerHTML = '<p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>';
 
- // Charger le profil de l'étudiant ciblé
-var profileRes = await sb.from('profiles')
-  .select('full_name, avatar_url, bio, specialty, location')
-  .eq('id', targetId)
-  .single();
+  var profileRes = await sb.from('profiles')
+    .select('full_name, avatar_url, bio, specialty, location')
+    .eq('id', targetId)
+    .single();
+  var profile = profileRes.data;
 
-var profile = profileRes.data;
+  var avatarEl   = document.getElementById('galerie-avatar');
+  var titleEl    = document.getElementById('galerie-title');
+  var subtitleEl = document.getElementById('galerie-subtitle');
 
-// Éléments DOM
-var avatarEl = document.getElementById('galerie-avatar');
-var titleEl = document.getElementById('galerie-title');
-var subtitleEl = document.getElementById('galerie-subtitle');
-
-// Avatar
-if (avatarEl && profile) {
-  if (profile.avatar_url) {
-    avatarEl.innerHTML = '<img src="' + profile.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-  } else {
-    avatarEl.textContent = (profile.full_name || 'E').charAt(0).toUpperCase();
+  if (avatarEl && profile) {
+    if (profile.avatar_url) {
+      avatarEl.innerHTML = '<img src="' + profile.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      avatarEl.textContent = (profile.full_name || 'E').charAt(0).toUpperCase();
+    }
   }
-}
+  if (titleEl)    titleEl.textContent    = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
+  if (subtitleEl) subtitleEl.textContent = isOwnGallery
+    ? 'Tous vos projets archivés sur Lakou Archi.'
+    : (profile && profile.specialty ? profile.specialty : 'Étudiant en architecture');
 
-// Titre et sous-titre
-if (titleEl) {
-  titleEl.textContent = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
-}
-if (subtitleEl) {
-  subtitleEl.textContent = isOwnGallery
-    ? 'Tous vos projets archives sur Lakou Archi.'
-    : (profile && profile.specialty ? profile.specialty : 'Etudiant en architecture');
-}
-
-  // Charger les projets de cet étudiant
   var query = sb.from('projects')
-    .select('*, student:profiles!student_id(id, full_name)')
+    .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
     .eq('student_id', targetId)
     .order('created_at', { ascending: false });
 
-  // Visiteurs et autres étudiants ne voient que les projets approuvés
-  if (!isOwnGallery) {
-    query = query.eq('status', 'approved');
-  }
+  if (!isOwnGallery) query = query.eq('status', 'approved');
 
-  var res = await query;
+  var res      = await query;
   var projects = res.data || [];
 
   if (!grid) { return; }
 
   if (projects.length === 0) {
-    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gris);font-family:sans-serif;font-size:0.85rem">' +
-      (isOwnGallery ? 'Aucun projet pour le moment.' : 'Cet etudiant n\'a pas encore de projet publie.') +
-      '</div>';
+    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gris);font-family:sans-serif;font-size:0.85rem">'
+      + (isOwnGallery ? 'Aucun projet pour le moment.' : "Cet étudiant n'a pas encore de projet publié.")
+      + '</div>';
     return;
   }
 
@@ -3277,69 +3296,55 @@ var res = await query;
   }
 }
 loadHomeRecentProjects();
-async function loadGalerie() {
-  var targetId = currentGalerieUserId || currentUser.id;
-  var isOwnGallery = targetId === currentUser.id;
 
-  // Titre dynamique
-  var titleEl = document.querySelector('#page-galerie h1');
-  var subtitleEl = document.querySelector('#page-galerie p');
+
+async function loadGalerie() {
+  if (!currentUser) { showPage('login'); return; }
+
+  var targetId   = currentGalerieUserId || currentUser.id;
+  var isOwnGallery = targetId === currentUser.id;
 
   var grid = document.getElementById('galerie-grid');
   if (grid) grid.innerHTML = '<p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>';
 
- // Charger le profil de l'étudiant ciblé
-var profileRes = await sb.from('profiles')
-  .select('full_name, avatar_url, bio, specialty, location')
-  .eq('id', targetId)
-  .single();
+  var profileRes = await sb.from('profiles')
+    .select('full_name, avatar_url, bio, specialty, location')
+    .eq('id', targetId)
+    .single();
+  var profile = profileRes.data;
 
-var profile = profileRes.data;
+  var avatarEl   = document.getElementById('galerie-avatar');
+  var titleEl    = document.getElementById('galerie-title');
+  var subtitleEl = document.getElementById('galerie-subtitle');
 
-// Éléments DOM
-var avatarEl = document.getElementById('galerie-avatar');
-var titleEl = document.getElementById('galerie-title');
-var subtitleEl = document.getElementById('galerie-subtitle');
-
-// Avatar
-if (avatarEl && profile) {
-  if (profile.avatar_url) {
-    avatarEl.innerHTML = '<img src="' + profile.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-  } else {
-    avatarEl.textContent = (profile.full_name || 'E').charAt(0).toUpperCase();
+  if (avatarEl && profile) {
+    if (profile.avatar_url) {
+      avatarEl.innerHTML = '<img src="' + profile.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      avatarEl.textContent = (profile.full_name || 'E').charAt(0).toUpperCase();
+    }
   }
-}
+  if (titleEl)    titleEl.textContent    = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
+  if (subtitleEl) subtitleEl.textContent = isOwnGallery
+    ? 'Tous vos projets archivés sur Lakou Archi.'
+    : (profile && profile.specialty ? profile.specialty : 'Étudiant en architecture');
 
-// Titre et sous-titre
-if (titleEl) {
-  titleEl.textContent = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
-}
-if (subtitleEl) {
-  subtitleEl.textContent = isOwnGallery
-    ? 'Tous vos projets archives sur Lakou Archi.'
-    : (profile && profile.specialty ? profile.specialty : 'Etudiant en architecture');
-}
-
-  // Charger les projets de cet étudiant
   var query = sb.from('projects')
-    .select('*, student:profiles!student_id(id, full_name)')
+    .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
     .eq('student_id', targetId)
     .order('created_at', { ascending: false });
 
-  // Visiteurs et autres étudiants ne voient que les projets approuvés
-  if (!isOwnGallery) {
-    query = query.eq('status', 'approved');
-  }
+  if (!isOwnGallery) query = query.eq('status', 'approved');
 
-  var res = await query;
+  var res      = await query;
   var projects = res.data || [];
 
   if (!grid) { return; }
 
   if (projects.length === 0) {
-    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gris);font-family:sans-serif;font-size:0.85rem">' +
-      (isOwnGallery ? 'Aucun projet pour le moment.' : 'Cet etudiant n\'a pas encore de projet publie.') +
-      '</div>';
+    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gris);font-family:sans-serif;font-size:0.85rem">'
+      + (isOwnGallery ? 'Aucun projet pour le moment.' : "Cet étudiant n'a pas encore de projet publié.")
+      + '</div>';
     return;
   }
 
@@ -3837,16 +3842,24 @@ async function doUploadSheet(catKey, sheetIndex, input) {
 }
 
 // ---- Suppression d'une planche ----
+
 async function deleteSheet(catKey, sheetIndex) {
   if (!confirm('Supprimer cette planche du livret ?')) return;
+  var savedNiveaux = parseInt((document.getElementById('livret-niveaux-select') || {}).value || '0');
   await sb.from('project_sheets').delete()
     .eq('project_id', currentProjectId)
     .eq('category', catKey)
     .eq('sheet_index', sheetIndex);
   toast('Planche supprimée.');
   await loadLivretForm();
+  if (savedNiveaux > 1) {
+    var lvlSel = document.getElementById('livret-niveaux-select');
+    if (lvlSel && parseInt(lvlSel.value) !== savedNiveaux) {
+      lvlSel.value = savedNiveaux;
+      onNiveauxChange(savedNiveaux);
+    }
+  }
 }
-
 // ---- Lightbox plein écran livret ----
 function openLivretLightbox(url, desc, scale) {
   var old = document.getElementById('livret-lightbox');
