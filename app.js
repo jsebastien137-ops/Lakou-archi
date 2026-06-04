@@ -773,8 +773,8 @@ async function doSubmitValidation() {
   await loadEditProject();
 }
 async function openProjectDetail(projectId) {
-  if (!currentUser) { showAccessModal(); return; }
-  currentProjectId=projectId;
+  if (!currentUser) { showPage('login'); return; }
+    currentProjectId=projectId;
   showPage('project-detail');
   var viewedKey = 'viewed_' + projectId;
 if (!sessionStorage.getItem(viewedKey)) {
