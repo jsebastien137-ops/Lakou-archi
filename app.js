@@ -1032,12 +1032,16 @@ function saveTechnicalDossier() {
 // Insérer AVANT loadTechnicalDossier()
 // ═══════════════════════════════════════════════════════════
 
+// ─── État persistant entre re-renders ────────────────────────────
+var tdSelectedNiveaux = null;
+var tdImagesCache     = [];
+
+// ─── Chargement du formulaire d'édition complet ──────────────────
 async function loadTechnicalDossierEdit() {
   if (!currentProjectId) return;
-  var container = document.getElementById('td-edit-section');
+  var container = document.getElementById('td-section');
   if (!container) return;
 
-  // Charger les images existantes du dossier technique
   var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
   var res = await sb.from('project_images')
     .select('*')
@@ -1045,25 +1049,29 @@ async function loadTechnicalDossierEdit() {
     .in('category', tdKeys)
     .order('category').order('order_index');
   var images = res.data || [];
+  tdImagesCache = images;
+
+  var niveauImgs = images.filter(function(i){ return i.category === 'niveaux'; });
+  var minLvl     = Math.max(niveauImgs.length, 1);
+  // Persistance : garde le choix utilisateur s'il est >= nombre d'images existantes
+  var defaultLvl = tdSelectedNiveaux && tdSelectedNiveaux >= minLvl
+                 ? tdSelectedNiveaux
+                 : minLvl;
+  tdSelectedNiveaux = defaultLvl;
 
   var html = '<div class="livret-form-wrap">';
   html += '<h3 class="livret-section-title">📋 Dossier Technique — Dépôt des planches</h3>';
 
-  // ── Question niveaux ──────────────────────────────────────
-  var niveauImgs = images.filter(function(i){ return i.category === 'niveaux'; });
-  var defaultLvl = Math.max(niveauImgs.length, 1);
-
   html += '<div class="livret-question-block">';
   html += '<label class="livret-label">Combien de niveaux / étages comporte votre projet ?</label>';
   html += '<select id="td-niveaux-count" class="form-select livret-niveaux-select" '
-        + 'onchange="tdRenderNiveauxBlocks(parseInt(this.value))">';
+        + 'onchange="tdSelectedNiveaux=parseInt(this.value);tdRenderNiveauxBlocks(tdSelectedNiveaux)">';
   for (var n = 1; n <= 5; n++) {
     html += '<option value="' + n + '"' + (n === defaultLvl ? ' selected' : '') + '>'
           + n + (n > 1 ? ' niveaux' : ' niveau') + '</option>';
   }
   html += '</select></div>';
 
-  // ── Sections dynamiques ───────────────────────────────────
   TD_SECTIONS.forEach(function(section) {
     var catImgs = images.filter(function(i){ return i.category === section.key; });
     var isMulti = (section.key !== 'plan_masse');
@@ -1072,11 +1080,9 @@ async function loadTechnicalDossierEdit() {
     html += '<div class="livret-cat-section" id="td-cat-' + section.key + '">';
     html += '<div class="livret-cat-title">' + section.icon + ' ' + section.label + '</div>';
     html += '<div class="livret-blocks-wrap" id="td-blocks-' + section.key + '">';
-
     for (var i = 0; i < count; i++) {
       html += tdBuildBlock(section, i, catImgs[i] || null);
     }
-
     html += '</div></div>';
   });
 
@@ -1084,6 +1090,8 @@ async function loadTechnicalDossierEdit() {
   container.innerHTML = html;
 }
 
+// ─── Construction d'un bloc upload ───────────────────────────────
+// Lovable ajout #1 : <div id="prev-"> vide quand pas d'image
 function tdBuildBlock(section, index, existing) {
   var blockId = 'tdblk-' + section.key + '-' + index;
   var hasImg  = !!(existing && existing.url);
@@ -1094,16 +1102,14 @@ function tdBuildBlock(section, index, existing) {
   var html = '<div id="' + blockId + '" data-tdblock="1" '
            + 'style="margin-bottom:1.75rem;padding-bottom:1.75rem;border-bottom:1px solid rgba(160,120,70,0.09)">';
 
-  // Label minimaliste
   html += '<p style="font-size:0.62rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;'
         + 'color:#b0956a;font-family:sans-serif;margin:0 0 0.75rem">' + label + '</p>';
 
-  // Aperçu image
   if (hasImg) {
     var esc = existing.url.replace(/'/g, "\\'");
     html += '<div id="prev-' + blockId + '" '
           + 'style="position:relative;aspect-ratio:4/3;border-radius:5px;overflow:hidden;background:#f0ebe4;margin-bottom:0.65rem">';
-    html += '<img src="' + existing.url + '" onclick="openLightbox(\'' + esc + '\')" alt="" '
+    html += '<img src="' + existing.url + '" onclick="openLivretLightbox(\'' + esc + '\',\'\',\'\')" alt="" '
           + 'style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block">';
     html += '<button onclick="tdDeleteImageEdit(\'' + existing.id + '\')" title="Supprimer" '
           + 'style="position:absolute;top:5px;right:5px;background:rgba(20,10,4,0.45);border:none;'
@@ -1111,17 +1117,16 @@ function tdBuildBlock(section, index, existing) {
           + 'display:flex;align-items:center;justify-content:center">✕</button>';
     html += '</div>';
   } else {
+    // Lovable ajout #1 : placeholder pour mise à jour inline sans rechargement
     html += '<div id="prev-' + blockId + '" style="display:none"></div>';
   }
 
-  // Champ étiquette — underline only, sans boîte
   html += '<input type="text" id="lbl-' + blockId + '" '
         + 'placeholder="' + (section.labelHint || 'Échelle (ex: 1:100)') + '" '
         + 'value="' + (existing ? (existing.alt_text || '') : '') + '" '
         + 'style="width:100%;padding:0.3rem 0;font-size:0.76rem;border:none;border-bottom:1px solid rgba(160,120,70,0.18);'
         + 'background:transparent;font-family:sans-serif;color:#2c1a0e;margin-bottom:0.65rem;box-sizing:border-box;outline:none">';
 
-  // Lien upload discret
   html += '<label for="file-' + blockId + '" '
         + 'style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;'
         + 'color:var(--terre,#8B4513);cursor:pointer;font-family:sans-serif;font-weight:600">';
@@ -1135,17 +1140,24 @@ function tdBuildBlock(section, index, existing) {
   html += '</div>';
   return html;
 }
+
+// ─── Re-render niveaux ────────────────────────────────────────────
+// Lovable ajout #2 : show/hide sans détruire le DOM (préserve les données saisies)
 function tdRenderNiveauxBlocks(count) {
+  tdSelectedNiveaux = count;
   TD_SECTIONS.forEach(function(section) {
     if (section.key === 'plan_masse') return;
     var wrap = document.getElementById('td-blocks-' + section.key);
     if (!wrap) return;
+    // Ajoute uniquement les blocs manquants
     var blocks = wrap.querySelectorAll('[data-tdblock]');
     for (var i = blocks.length; i < count; i++) {
+      var catImgs = tdImagesCache.filter(function(img){ return img.category === section.key; });
       var tmp = document.createElement('div');
-      tmp.innerHTML = tdBuildBlock(section, i, null);
+      tmp.innerHTML = tdBuildBlock(section, i, catImgs[i] || null);
       wrap.appendChild(tmp.firstChild);
     }
+    // Affiche/masque selon le compte choisi
     var all = wrap.querySelectorAll('[data-tdblock]');
     for (var j = 0; j < all.length; j++) {
       all[j].style.display = j < count ? '' : 'none';
@@ -1153,158 +1165,13 @@ function tdRenderNiveauxBlocks(count) {
   });
 }
 
+// ─── Upload depuis un bloc ────────────────────────────────────────
 async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
   var file = inputEl.files[0]; if (!file) return;
   var blockId  = 'tdblk-' + sectionKey + '-' + index;
   var labelVal = (document.getElementById('lbl-' + blockId) || {}).value || '';
 
-  toast('Compression en cours…');
-  inputEl.value = '';
-
-  tdCompress(file, async function(compressed) {
-    var sess = await sb.auth.getSession();
-    if (!sess.data.session) { toast('Session expirée, reconnectez-vous.', 'error'); return; }
-
-    var ext  = compressed.name.split('.').pop().toLowerCase();
-    var path = 'td/' + currentProjectId + '/' + sectionKey + '/' + index + '_' + Date.now() + '.' + ext;
-
-    var up = await sb.storage.from('project-images').upload(path, compressed, { upsert: true });
-    if (up.error) { toast('Erreur upload : ' + up.error.message, 'error'); return; }
-
-    var url = sb.storage.from('project-images').getPublicUrl(path).data.publicUrl;
-
-    var cntR = await sb.from('project_images')
-      .select('id', { count: 'exact', head: true })
-      .eq('project_id', currentProjectId).eq('category', sectionKey);
-
-    if (oldImageId) {
-      await sb.from('project_images').delete().eq('id', oldImageId);
-    }
-
-    var ins = await sb.from('project_images').insert({
-      project_id: currentProjectId,
-      url: url,
-      category: sectionKey,
-      order_index: index,
-      alt_text: labelVal || null,
-      file_size: compressed.size
-    });
-    if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); return; }
-
-    toast('Planche enregistrée !');
-    // Mémoriser le nombre de niveaux AVANT le rechargement
-    var savedNiveaux = parseInt((document.getElementById('td-niveaux-count') || {}).value || '0');
-    await loadTechnicalDossierEdit();
-    // Restaurer si l'utilisateur avait choisi plus que le défaut calculé
-    if (savedNiveaux > 1) {
-      var nSel = document.getElementById('td-niveaux-count');
-      if (nSel && parseInt(nSel.value) !== savedNiveaux) {
-        nSel.value = savedNiveaux;
-        tdRenderNiveauxBlocks(savedNiveaux);
-      }
-    }
-  });
-}
-async function tdDeleteImageEdit(imageId) {
-  if (!confirm('Supprimer cette planche ?')) return;
-  var savedNiveaux = parseInt((document.getElementById('td-niveaux-count') || {}).value || '0');
-  await sb.from('project_images').delete().eq('id', imageId);
-  toast('Planche supprimée.');
-  await loadTechnicalDossierEdit();
-  if (savedNiveaux > 1) {
-    var nSel = document.getElementById('td-niveaux-count');
-    if (nSel && parseInt(nSel.value) !== savedNiveaux) {
-      nSel.value = savedNiveaux;
-      tdRenderNiveauxBlocks(savedNiveaux);
-    }
-  }
-}
-
-    // État persistant entre re-renders
-var tdSelectedNiveaux = null;
-var tdImagesCache = [];
-
-async function loadTechnicalDossierEdit() {
-  if (!currentProjectId) return;
-  var container = document.getElementById('td-section');
-  if (!container) return;
-
-  var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
-  var res = await sb.from('project_images')
-    .select('*')
-    .eq('project_id', currentProjectId)
-    .in('category', tdKeys)
-    .order('category').order('order_index');
-  var images = res.data || [];
-  tdImagesCache = images; // cache pour tdRenderNiveauxBlocks
-
-  var niveauImgs = images.filter(function(i){ return i.category === 'niveaux'; });
-  // Persistance : on garde le choix utilisateur s'il est >= au nb d'images existantes
-  var minLvl = Math.max(niveauImgs.length, 1);
-  var defaultLvl = tdSelectedNiveaux && tdSelectedNiveaux >= minLvl
-                 ? tdSelectedNiveaux
-                 : minLvl;
-  tdSelectedNiveaux = defaultLvl;
-
-  var html = '<div class="livret-form-wrap">';
-  html += '<h3 class="livret-section-title">📋 Dossier Technique — Dépôt des planches</h3>';
-
-  // ── Question niveaux ──
-  html += '<div class="livret-question-block">';
-  html += '<label class="livret-label">Combien de niveaux / étages comporte votre projet ?</label>';
-  html += '<select id="td-niveaux-count" class="form-select livret-niveaux-select" '
-        + 'onchange="tdSelectedNiveaux=parseInt(this.value);tdRenderNiveauxBlocks(tdSelectedNiveaux)">';
-  for (var n = 1; n <= 5; n++) {
-    html += '<option value="' + n + '"' + (n === defaultLvl ? ' selected' : '') + '>'
-          + n + (n > 1 ? ' niveaux' : ' niveau') + '</option>';
-  }
-  html += '</select></div>';
-
-  // ── Sections dynamiques ──
-  TD_SECTIONS.forEach(function(section) {
-    var catImgs = images.filter(function(i){ return i.category === section.key; });
-    var isMulti = (section.key !== 'plan_masse');
-    var count   = isMulti ? defaultLvl : 1;
-
-    html += '<div class="livret-cat-section" id="td-cat-' + section.key + '">';
-    html += '<div class="livret-cat-title">' + section.icon + ' ' + section.label + '</div>';
-    html += '<div class="livret-blocks-wrap" id="td-blocks-' + section.key + '">';
-
-    for (var i = 0; i < count; i++) {
-      html += tdBuildBlock(section, i, catImgs[i] || null);
-    }
-
-    html += '</div></div>';
-  });
-
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function tdRenderNiveauxBlocks(count) {
-  TD_SECTIONS.forEach(function(section) {
-    if (section.key === 'plan_masse') return;
-    var wrap = document.getElementById('td-blocks-' + section.key);
-    if (!wrap) return;
-
-    // Images existantes pour cette catégorie (depuis le cache)
-    var catImgs = tdImagesCache.filter(function(i){ return i.category === section.key; });
-
-    // Reconstruit complètement les blocs avec les images existantes
-    var newHtml = '';
-    for (var i = 0; i < count; i++) {
-      newHtml += tdBuildBlock(section, i, catImgs[i] || null);
-    }
-    wrap.innerHTML = newHtml;
-  });
-}
-
-async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
-  var file = inputEl.files[0]; if (!file) return;
-  var blockId  = 'tdblk-' + sectionKey + '-' + index;
-  var labelVal = (document.getElementById('lbl-' + blockId) || {}).value || '';
-
-  // Sauvegarder le choix niveaux AVANT le refresh
+  // Mémoriser le choix AVANT le callback async (fermeture de closure)
   var selectEl = document.getElementById('td-niveaux-count');
   if (selectEl) tdSelectedNiveaux = parseInt(selectEl.value);
 
@@ -1338,9 +1205,24 @@ async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
     if (ins.error) { toast('Erreur DB : ' + ins.error.message, 'error'); return; }
 
     toast('Planche enregistrée !');
-    await loadTechnicalDossierEdit(); // garde le nb de niveaux choisi
+    // tdSelectedNiveaux déjà mémorisé → loadTechnicalDossierEdit le restaure automatiquement
+    await loadTechnicalDossierEdit();
   });
 }
+
+// ─── Suppression ──────────────────────────────────────────────────
+async function tdDeleteImageEdit(imageId) {
+  if (!confirm('Supprimer cette planche ?')) return;
+  // tdSelectedNiveaux déjà en mémoire globale, pas besoin de le lire ici
+  var res = await sb.from('project_images').delete().eq('id', imageId);
+  if (res.error) { toast(res.error.message, 'error'); return; }
+  toast('Planche supprimée.');
+  await loadTechnicalDossierEdit();
+}
+
+ 
+ 
+
 
 
 
