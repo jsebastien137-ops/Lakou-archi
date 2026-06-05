@@ -463,8 +463,10 @@ function filterProjects(level,btn) {
   renderGrid('public-projects-grid',filtered);
 }
 
-function renderGrid(id, projects) {
+
+    function renderGrid(id, projects) {
   var c = document.getElementById(id);
+  if (!c) return;
   if (!projects || projects.length === 0) {
     c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gris);font-size:0.85rem">Aucun projet disponible.</div>';
     return;
@@ -473,37 +475,39 @@ function renderGrid(id, projects) {
   var html = '';
 
   for (var i = 0; i < projects.length; i++) {
-    var p        = projects[i];
-    var student  = p.student ? (p.student.full_name || '-') : '-';
+    var p         = projects[i];
+    var student   = p.student ? (p.student.full_name || '-') : '-';
     var studentId = p.student ? p.student.id : null;
-    var school   = p.student && p.student.school ? p.student.school : null;
-    var year     = p.academic_year || '';
-    var area     = p.area ? p.area + ' m²' : '';
-    var atelier  = p.program_type || '';
-    var likes    = p.like_count || 0;
-    var views    = p.view_count || 0;
-    var isOwner  = currentUser && p.student_id === currentUser.id;
-    var isAdmin  = currentProfile && currentProfile.role === 'admin';
+    var school    = p.student && p.student.school ? p.student.school : null;
+    var year      = p.academic_year || '';
+    var area      = p.area ? p.area + ' m²' : '';
+    var atelier   = p.program_type || '';
+    var likes     = p.like_count || 0;
+    var views     = p.view_count || 0;
+    var isOwner   = currentUser && p.student_id === currentUser.id;
+    var isAdmin   = currentProfile && currentProfile.role === 'admin';
+    var pidEsc    = String(p.id).replace(/'/g, "\\'");
 
     var schoolBadge = school
       ? '<span style="font-size:0.65rem;background:rgba(160,120,70,0.1);color:var(--terre);padding:2px 8px;border-radius:999px;font-family:sans-serif;margin-left:4px">' + school + '</span>'
       : '';
 
-    // ── stopPropagation + preventDefault pour ne pas déclencher le lien parent ──
+    // Nom étudiant → openStudentGallery (stopPropagation pour ne pas ouvrir le projet)
     var studentHtml = studentId
-      ? '<span class="project-card-student clickable" onclick="event.stopPropagation();event.preventDefault();openStudentGallery(\'' + studentId + '\')">' + student + '</span>' + schoolBadge
+      ? '<span class="project-card-student clickable" onclick="event.stopPropagation();openStudentGallery(\'' + studentId + '\')">' + student + '</span>' + schoolBadge
       : '<span class="project-card-student">' + student + '</span>' + schoolBadge;
 
-    // ── image sans pointer-events pour laisser le clic remonter à l'<a> ──
     var imgHtml = p.cover_image_url
       ? '<img src="' + getWatermarkedUrl(p.cover_image_url, student) + '" draggable="false" style="pointer-events:none;display:block;width:100%;height:100%;object-fit:cover">'
       : '<div class="project-card-placeholder">' + p.title.charAt(0) + '</div>';
 
     var badge = p.level ? '<span class="project-card-badge">' + p.level + '</span>' : '';
 
-    // ── Lien de routage qui enveloppe toute la carte ──────────────────────────
-    html += '<a href="javascript:void(0)" onclick="openProjectDetail(' + JSON.stringify(p.id) + ')" style="display:block;text-decoration:none;color:inherit">';
-    html += '<div class="project-card">';
+    // ── Carte ENTIÈRE cliquable (titre + image + footer) → openProjectDetail ──
+    html += '<div class="project-card" role="button" tabindex="0" '
+          + 'style="cursor:pointer" '
+          + 'onclick="openProjectDetail(\'' + pidEsc + '\')" '
+          + 'onkeydown="if(event.key===\'Enter\'){openProjectDetail(\'' + pidEsc + '\')}">';
 
     html += '<div class="project-card-img">' + imgHtml + badge + '</div>';
 
@@ -522,19 +526,19 @@ function renderGrid(id, projects) {
     html += '<div class="project-card-footer">';
     html += studentHtml;
     html += '<div class="project-card-stats"><span>👁 ' + views + '</span><span>♥ ' + likes + '</span></div>';
-    html += '</div>'; // footer
+    html += '</div>';
 
     if (isOwner || isAdmin) {
-      html += '<button class="project-delete-btn" onclick="event.stopPropagation();event.preventDefault();deleteProject(\'' + p.id + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif">🗑 Supprimer</button>';
+      html += '<button class="project-delete-btn" onclick="event.stopPropagation();deleteProject(\'' + pidEsc + '\')" style="margin-top:0.5rem;background:none;border:none;color:#ccc;font-size:0.75rem;cursor:pointer;font-family:sans-serif">🗑 Supprimer</button>';
     }
 
-    html += '</div>'; // card-body
-    html += '</div>'; // project-card
-    html += '</a>';   // lien de routage
+    html += '</div>'; // body
+    html += '</div>'; // card
   }
 
   c.innerHTML = html;
 }
+
 
 async function loadDashboard() {
   console.log('loadDashboard called, currentUser:', currentUser ? currentUser.id : 'NULL');
