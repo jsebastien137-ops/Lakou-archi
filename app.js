@@ -653,7 +653,7 @@ async function loadEditProject() {
   await loadStages();
   await loadProjectImages();
   await loadTechnicalDossierEdit();
- await loadLivretForm();
+
 }
 async function loadStages() {
   var res=await sb.from('project_stages').select('*, images:stage_images(*)').eq('project_id',currentProjectId).order('order_index');
