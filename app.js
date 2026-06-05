@@ -1023,7 +1023,83 @@ async function tdDeleteComment(commentId) {
   await sb.from('project_comments').delete().eq('id', commentId);
   await tdLoadComments();
 }
+async function loadTechnicalDossier(projectId) {
+  var res = await sb.from('project_images')
+    .select('*')
+    .eq('project_id', projectId)
+    .neq('category', 'cover')
+    .order('category')
+    .order('order_index');
+  var images = res.data || [];
 
+  var container = document.getElementById('td-section');
+  if (!container) return;
+
+  if (images.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  var ORDER = ['plan_masse','niveaux','coupes','facades','structure','rendus'];
+  var LABELS = {
+    plan_masse : '🗺 Plan de masse / Implantation',
+    niveaux    : '📐 Niveaux & Étages',
+    coupes     : '✂️ Coupes',
+    facades    : '🏛 Façades',
+    structure  : '⚙️ Structure',
+    rendus     : '🎨 Rendus'
+  };
+
+  var byCategory = {};
+  images.forEach(function(img) {
+    if (!byCategory[img.category]) byCategory[img.category] = [];
+    byCategory[img.category].push(img);
+  });
+
+  var html = '<div style="margin-top:2.5rem">';
+  html += '<h2 style="font-size:0.72rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;'
+        + 'color:#8B4513;border-bottom:1px solid rgba(160,120,70,0.22);padding-bottom:0.6rem;'
+        + 'margin-bottom:2rem;font-family:sans-serif">Dossier Technique</h2>';
+
+  var keys = ORDER.filter(function(k) { return byCategory[k] && byCategory[k].length > 0; });
+  var extras = Object.keys(byCategory).filter(function(k) { return ORDER.indexOf(k) === -1; });
+
+  keys.concat(extras).forEach(function(cat) {
+    var imgs = byCategory[cat];
+    if (!imgs || imgs.length === 0) return;
+    var label = LABELS[cat] || cat;
+
+    html += '<div style="margin-bottom:2.25rem">';
+    html += '<p style="font-size:0.62rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;'
+          + 'color:#b0956a;font-family:sans-serif;margin:0 0 0.85rem;border-bottom:1px solid rgba(160,120,70,0.1);padding-bottom:0.4rem">'
+          + label + '</p>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.65rem">';
+
+    imgs.forEach(function(img) {
+      var safeUrl = img.url.replace(/'/g, "\\'");
+      var safeAlt = (img.alt_text || '').replace(/'/g, "\\'");
+      html += '<div style="position:relative;border-radius:5px;overflow:hidden;background:#ede8e1;'
+            + 'aspect-ratio:4/3;cursor:zoom-in" onclick="openLivretLightbox(\'' + safeUrl + '\',\'' + safeAlt + '\',\'\')">';
+      html += '<img src="' + img.url + '" alt="' + (img.alt_text || '') + '" draggable="false" '
+            + 'style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none">';
+      if (img.alt_text) {
+        html += '<div style="position:absolute;bottom:0;left:0;right:0;padding:0.22rem 0.4rem;'
+              + 'background:rgba(20,10,4,0.48);color:#fff;font-size:0.58rem;font-family:sans-serif;'
+              + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + img.alt_text + '</div>';
+      }
+      html += '</div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Charger les likes et commentaires
+  await tdLoadLikes(projectId);
+  await tdLoadComments();
+}
 function saveTechnicalDossier() {
   // Les images sont sauvegardées en temps réel à l'upload.
   // Ce bouton sert de confirmation visuelle + point d'extension futur.
