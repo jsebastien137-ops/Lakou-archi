@@ -876,7 +876,23 @@ function tdCompress(file, callback) {
   if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
     callback(file); return;
   }
-  var MAX = 1600, Q = 0.82;
+
+  var MB = file.size / (1024 * 1024);
+
+  // Fichiers légers : aucune compression, qualité native préservée
+  if (MB < 1) {
+    callback(file); return;
+  }
+
+  // Compression modérée : 1 Mo – 4.99 Mo
+  var MAX = 2400, Q = 0.78;
+
+  // Compression agressive : 5 Mo et plus
+  if (MB >= 5) {
+    MAX = 1600;
+    Q   = 0.62;
+  }
+
   var reader = new FileReader();
   reader.onload = function(e) {
     var img = new Image();
