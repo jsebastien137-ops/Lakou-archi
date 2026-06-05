@@ -1065,6 +1065,27 @@ select.field-input {
   outline:none;margin-bottom:1.5rem;font-family:"Inter",sans-serif;
 }
 .field-select option{background:var(--terre);color:#fff}
+.form-body .field-select {
+  background: #fff;
+  color: #1a1a1a;
+  border: 1px solid rgba(160,120,70,0.35);
+  border-bottom: 1px solid rgba(160,120,70,0.35);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: sans-serif;
+  margin-bottom: 0.8rem;
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: auto;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-body .field-select option {
+  background: #fff;
+  color: #1a1a1a;
+}
 .auth-btn{
   width:100%;background:var(--ocre);color:#fff;border:none;
   padding:0.95rem;font-size:0.85rem;font-weight:500;
