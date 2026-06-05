@@ -592,26 +592,27 @@ function openAtelierOrLogin(type) {
 }
 async function doCreateProject() {
   if (!currentUser) { showPage('login'); return; }
- var sessionCheck = await sb.auth.getSession();
+  var sessionCheck = await sb.auth.getSession();
   if (!sessionCheck.data.session) { showPage('login'); return; }
 
-    hideErr('new-project-error');
+  hideErr('new-project-error');
   var btn = document.getElementById('create-proj-btn');
-  if (btn.disabled) { return; } // ← bloque les doubles clics
+  if (btn.disabled) { return; }
   var title = document.getElementById('proj-title').value;
   if (!title) { showErr('new-project-error', 'Le titre est obligatoire.'); return; }
   btn.disabled = true;
   btn.textContent = 'Creation en cours...';
   try {
     var res = await sb.from('projects').insert({
-      title: title,
-      description: document.getElementById('proj-desc').value || null,
-      level: document.getElementById('proj-level').value || null,
+      title:         title,
+      description:   document.getElementById('proj-desc').value || null,
+      area:          parseInt(document.getElementById('proj-superficie').value) || null,
+      level:         document.getElementById('proj-level').value || null,
       academic_year: document.getElementById('proj-year').value || null,
-      program_type: document.getElementById('proj-program').value || null,
-      location: document.getElementById('proj-location').value || null,
-      student_id: currentUser.id,
-      status: 'draft',
+      program_type:  document.getElementById('proj-program').value || null,
+      location:      document.getElementById('proj-location').value || null,
+      student_id:    currentUser.id,
+      status:        'draft',
       cover_image_url: null
     }).select().single();
     if (res.error) { showErr('new-project-error', res.error.message); btn.disabled = false; btn.textContent = 'Creer et continuer'; return; }
@@ -625,7 +626,6 @@ async function doCreateProject() {
     btn.textContent = 'Creer et continuer';
   }
 }
-
 async function openEditProject(projectId) {
   currentProjectId = projectId;
   showPage('edit-project');
@@ -819,10 +819,11 @@ async function openProjectDetail(projectId) {
   var meta = '';
   if (p.student)       meta += '<span><strong>Etudiant</strong> ' + p.student.full_name + '</span>';
   if (p.school)        meta += '<span><strong>Ecole</strong> '    + p.school.name       + '</span>';
+  if (p.level)         meta += '<span><strong>Classe</strong> '   + p.level             + '</span>';
   if (p.academic_year) meta += '<span><strong>Annee</strong> '    + p.academic_year     + '</span>';
+  if (p.area)          meta += '<span><strong>Superficie</strong> ' + p.area + ' m²</span>';
   meta += '<span><strong>Vues</strong> ' + (p.view_count || 0) + '</span>';
   document.getElementById('detail-meta').innerHTML = meta;
-
   var stages = (p.stages || []).sort(function(a, b) { return a.order_index - b.order_index; });
   var tl = document.getElementById('detail-timeline');
   if (stages.length === 0) {
@@ -2502,17 +2503,14 @@ async function doSearch(query) {
     async function doSaveProjectInfo() {
   if (!currentProjectId) { return; }
 
-  var level = document.getElementById('edit-level') ? document.getElementById('edit-level').value : null;
-  if (!level) { toast('Veuillez selectionner un niveau.', 'error'); return; }
-
   var updates = {
-    architects: document.getElementById('edit-architects') ? document.getElementById('edit-architects').value : null,
-    area: document.getElementById('edit-area') ? parseInt(document.getElementById('edit-area').value) || null : null,
-    academic_year: document.getElementById('edit-year') ? document.getElementById('edit-year').value : null,
-    level: level,
-    program_type: document.getElementById('edit-program') ? document.getElementById('edit-program').value : null,
-    location: document.getElementById('edit-location') ? document.getElementById('edit-location').value : null,
-    description: document.getElementById('edit-description') ? document.getElementById('edit-description').value : null
+    architects:   document.getElementById('edit-architects')  ? document.getElementById('edit-architects').value || null  : null,
+    area:         document.getElementById('edit-area')        ? parseInt(document.getElementById('edit-area').value) || null : null,
+    academic_year: document.getElementById('edit-year')       ? document.getElementById('edit-year').value || null        : null,
+    level:        document.getElementById('edit-level')       ? document.getElementById('edit-level').value || null       : null,
+    program_type: document.getElementById('edit-program')     ? document.getElementById('edit-program').value || null     : null,
+    location:     document.getElementById('edit-location')    ? document.getElementById('edit-location').value || null    : null,
+    description:  document.getElementById('edit-description') ? document.getElementById('edit-description').value || null : null
   };
 
   var res = await sb.from('projects').update(updates).eq('id', currentProjectId);
@@ -3491,17 +3489,14 @@ async function doSearch(query) {
     async function doSaveProjectInfo() {
   if (!currentProjectId) { return; }
 
-  var level = document.getElementById('edit-level') ? document.getElementById('edit-level').value : null;
-  if (!level) { toast('Veuillez selectionner un niveau.', 'error'); return; }
-
   var updates = {
-    architects: document.getElementById('edit-architects') ? document.getElementById('edit-architects').value : null,
-    area: document.getElementById('edit-area') ? parseInt(document.getElementById('edit-area').value) || null : null,
-    academic_year: document.getElementById('edit-year') ? document.getElementById('edit-year').value : null,
-    level: level,
-    program_type: document.getElementById('edit-program') ? document.getElementById('edit-program').value : null,
-    location: document.getElementById('edit-location') ? document.getElementById('edit-location').value : null,
-    description: document.getElementById('edit-description') ? document.getElementById('edit-description').value : null
+    architects:   document.getElementById('edit-architects')  ? document.getElementById('edit-architects').value || null  : null,
+    area:         document.getElementById('edit-area')        ? parseInt(document.getElementById('edit-area').value) || null : null,
+    academic_year: document.getElementById('edit-year')       ? document.getElementById('edit-year').value || null        : null,
+    level:        document.getElementById('edit-level')       ? document.getElementById('edit-level').value || null       : null,
+    program_type: document.getElementById('edit-program')     ? document.getElementById('edit-program').value || null     : null,
+    location:     document.getElementById('edit-location')    ? document.getElementById('edit-location').value || null    : null,
+    description:  document.getElementById('edit-description') ? document.getElementById('edit-description').value || null : null
   };
 
   var res = await sb.from('projects').update(updates).eq('id', currentProjectId);
