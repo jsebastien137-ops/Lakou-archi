@@ -1044,8 +1044,9 @@ var tdImagesCache     = [];
 async function loadTechnicalDossierEdit() {
   if (!currentProjectId) return;
   // ← CORRECTION : td-section (pas td-edit-section qui n'existe pas dans le HTML)
-  var container = document.getElementById('td-section');
-  if (!container) return;
+ 
+    var container = document.getElementById('td-edit-section');
+    if (!container) return;
 
   var tdKeys = TD_SECTIONS.map(function(s) { return s.key; });
   var res = await sb.from('project_images')
