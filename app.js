@@ -1032,13 +1032,17 @@ function saveTechnicalDossier() {
 // Insérer AVANT loadTechnicalDossier()
 // ═══════════════════════════════════════════════════════════
 
-// ─── État persistant entre re-renders ────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// DOSSIER TECHNIQUE — Formulaire d'édition (page edit-project)
+// ═══════════════════════════════════════════════════════════════════
+
+// État persistant entre re-renders (survit aux rechargements du formulaire)
 var tdSelectedNiveaux = null;
 var tdImagesCache     = [];
 
-// ─── Chargement du formulaire d'édition complet ──────────────────
 async function loadTechnicalDossierEdit() {
   if (!currentProjectId) return;
+  // ← CORRECTION : td-section (pas td-edit-section qui n'existe pas dans le HTML)
   var container = document.getElementById('td-section');
   if (!container) return;
 
@@ -1049,7 +1053,7 @@ async function loadTechnicalDossierEdit() {
     .in('category', tdKeys)
     .order('category').order('order_index');
   var images = res.data || [];
-  tdImagesCache = images;
+  tdImagesCache = images; // cache pour tdRenderNiveauxBlocks
 
   var niveauImgs = images.filter(function(i){ return i.category === 'niveaux'; });
   var minLvl     = Math.max(niveauImgs.length, 1);
@@ -1090,8 +1094,6 @@ async function loadTechnicalDossierEdit() {
   container.innerHTML = html;
 }
 
-// ─── Construction d'un bloc upload ───────────────────────────────
-// Lovable ajout #1 : <div id="prev-"> vide quand pas d'image
 function tdBuildBlock(section, index, existing) {
   var blockId = 'tdblk-' + section.key + '-' + index;
   var hasImg  = !!(existing && existing.url);
@@ -1117,7 +1119,6 @@ function tdBuildBlock(section, index, existing) {
           + 'display:flex;align-items:center;justify-content:center">✕</button>';
     html += '</div>';
   } else {
-    // Lovable ajout #1 : placeholder pour mise à jour inline sans rechargement
     html += '<div id="prev-' + blockId + '" style="display:none"></div>';
   }
 
@@ -1141,15 +1142,13 @@ function tdBuildBlock(section, index, existing) {
   return html;
 }
 
-// ─── Re-render niveaux ────────────────────────────────────────────
-// Lovable ajout #2 : show/hide sans détruire le DOM (préserve les données saisies)
 function tdRenderNiveauxBlocks(count) {
   tdSelectedNiveaux = count;
   TD_SECTIONS.forEach(function(section) {
     if (section.key === 'plan_masse') return;
     var wrap = document.getElementById('td-blocks-' + section.key);
     if (!wrap) return;
-    // Ajoute uniquement les blocs manquants
+    // Ajoute uniquement les blocs manquants (préserve les données déjà saisies)
     var blocks = wrap.querySelectorAll('[data-tdblock]');
     for (var i = blocks.length; i < count; i++) {
       var catImgs = tdImagesCache.filter(function(img){ return img.category === section.key; });
@@ -1165,13 +1164,12 @@ function tdRenderNiveauxBlocks(count) {
   });
 }
 
-// ─── Upload depuis un bloc ────────────────────────────────────────
 async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
   var file = inputEl.files[0]; if (!file) return;
   var blockId  = 'tdblk-' + sectionKey + '-' + index;
   var labelVal = (document.getElementById('lbl-' + blockId) || {}).value || '';
 
-  // Mémoriser le choix AVANT le callback async (fermeture de closure)
+  // Mémoriser le choix niveaux AVANT le callback async
   var selectEl = document.getElementById('td-niveaux-count');
   if (selectEl) tdSelectedNiveaux = parseInt(selectEl.value);
 
@@ -1210,16 +1208,13 @@ async function tdUploadEdit(sectionKey, index, oldImageId, inputEl) {
   });
 }
 
-// ─── Suppression ──────────────────────────────────────────────────
 async function tdDeleteImageEdit(imageId) {
   if (!confirm('Supprimer cette planche ?')) return;
-  // tdSelectedNiveaux déjà en mémoire globale, pas besoin de le lire ici
   var res = await sb.from('project_images').delete().eq('id', imageId);
   if (res.error) { toast(res.error.message, 'error'); return; }
   toast('Planche supprimée.');
   await loadTechnicalDossierEdit();
 }
-
  
  
 
