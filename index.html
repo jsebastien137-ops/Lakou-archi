@@ -1067,7 +1067,7 @@
 
 
 <!-- PAGE NOUVEAU PROJET -->
-<div id="page-new-project" class="page hidden">
+  <div id="page-new-project" class="page hidden">
   <div class="form-page">
     <div class="form-header">
       <span class="nav-logo" onclick="showPage('home')" style="cursor:pointer">Lakou<span style="color:var(--ocre)">.</span>Archi</span>
@@ -1077,36 +1077,43 @@
       <p class="form-eyebrow">Nouveau projet</p>
       <h1 class="form-title">Creer un projet</h1>
       <div id="new-project-error" class="auth-error hidden"></div>
+
       <label class="field-label">Titre du projet *</label>
       <input type="text" id="proj-title" class="field-input" placeholder="Centre culturel de Jacmel">
+
       <label class="field-label">Description</label>
       <textarea id="proj-desc" class="field-input" rows="4" style="resize:none" placeholder="Decrivez votre projet..."></textarea>
+
+      <label class="field-label">Superficie</label>
+      <input type="number" id="proj-superficie" class="field-input" placeholder="Superficie en m² (ex: 120)" min="0" step="1">
+
       <div class="form-row">
         <div>
-          <!-- APRÈS -->
-<label class="field-label">Niveau</label>
-<select id="proj-level" class="field-select">
-  <option value="">Choisir</option>
-  <optgroup label="— Années haïtiennes —">
-    <option value="A1">1ère année</option>
-    <option value="A2">2e année</option>
-    <option value="A3">3e année</option>
-    <option value="A4">4e année</option>
-  </optgroup>
-  <optgroup label="— International —">
-    <option value="L1">Licence 1</option>
-    <option value="L2">Licence 2</option>
-    <option value="L3">Licence 3</option>
-    <option value="M1">Master 1</option>
-    <option value="M2">Master 2</option>
-  </optgroup>
-</select>
+          <label class="field-label">Classe / Niveau</label>
+          <select id="proj-level" class="field-select">
+            <option value="">Choisir</option>
+            <optgroup label="— Années haïtiennes —">
+              <option value="1ère année">1ère année</option>
+              <option value="2ème année">2ème année</option>
+              <option value="3ème année">3ème année</option>
+              <option value="4ème année">4ème année</option>
+              <option value="Fin d'études">Fin d'études</option>
+            </optgroup>
+            <optgroup label="— International —">
+              <option value="L1">Licence 1</option>
+              <option value="L2">Licence 2</option>
+              <option value="L3">Licence 3</option>
+              <option value="M1">Master 1</option>
+              <option value="M2">Master 2</option>
+            </optgroup>
+          </select>
         </div>
         <div>
           <label class="field-label">Annee academique</label>
           <input type="text" id="proj-year" class="field-input" placeholder="2023-2024">
         </div>
       </div>
+
       <div class="form-row">
         <div>
           <label class="field-label">Type de programme</label>
@@ -1117,6 +1124,7 @@
           <input type="text" id="proj-location" class="field-input" placeholder="Port-au-Prince...">
         </div>
       </div>
+
       <div class="form-actions">
         <button class="form-btn" id="create-proj-btn" onclick="doCreateProject()">Creer et continuer</button>
         <button class="form-btn-cancel" onclick="showPage('dashboard')">Annuler</button>
@@ -1124,6 +1132,7 @@
     </div>
   </div>
 </div>
+
 
 <!-- PAGE EDIT PROJET -->
 <!-- PAGE EDIT PROJET -->
