@@ -2375,7 +2375,12 @@ async function loadTeacherProfile() {
     if (projects.length > 0) {
       renderGrid('teacher-profile-grid', projects);
     }
-
+if (projects.length > 0) {
+      renderGrid('teacher-profile-grid', projects);
+    }
+    if (validatedProjects.length > 0) {
+      renderGrid('teacher-validated-grid', validatedProjects);
+    }
   } catch(e) {
     console.warn('loadTeacherProfile:', e);
     page.innerHTML = '<p style="padding:2rem;font-family:sans-serif;color:var(--gris)">Erreur de chargement.</p>';
