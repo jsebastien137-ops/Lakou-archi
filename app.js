@@ -2275,14 +2275,26 @@ async function loadTeacherProfile() {
   page.innerHTML = '<div style="text-align:center;padding:4rem;color:var(--gris);font-family:sans-serif">Chargement...</div>';
 
   try {
-    // Profil de l'intervenant
-    var profileRes = await sb.from('profiles')
-      .select('id, full_name, avatar_url, bio, specialty, location, portfolio_url, role, school')
-      .eq('id', currentTeacherId)
-      .single();
-    var t = profileRes.data;
-    if (!t) { page.innerHTML = '<p style="padding:2rem;font-family:sans-serif">Profil introuvable.</p>'; return; }
-
+ // Requêtes parallèles : projets propres + projets validés
+    var [projRes, validatedRes] = await Promise.all([
+      sb.from('projects')
+        .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
+        .eq('student_id', currentTeacherId)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false }),
+      sb.from('projects')
+        .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
+        .eq('validated_by', currentTeacherId)
+        .eq('status', 'approved')
+        .order('validated_at', { ascending: false })
+        .limit(20)
+    ]);
+    var projects        = projRes.data      || [];
+    var validatedProjects = validatedRes.data || [];
+    // Exclure ses propres projets de la liste "validés par"
+    validatedProjects = validatedProjects.filter(function(p) {
+      return p.student_id !== currentTeacherId;
+    });
     // Projets publics de l'intervenant
     var projRes = await sb.from('projects')
       .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
