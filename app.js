@@ -5,6 +5,7 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     var currentUser = null;
 var currentProfile = null;
 var currentProjectId = null;
+var currentTeacherId = null;
 var allPublicProjects = [];
 var slideIdx = 0;
 var slideTimer = null;
@@ -54,7 +55,7 @@ if (backBtn) backBtn.style.display = (name === 'home') ? 'none' : 'flex';
  if (name === 'home') { loadStats(); loadVivante(); }
     if (name === 'chambres') {} 
 if (name === 'teachers') { loadTeachersHome(); }
-
+if (name === 'teacher-profile') { loadTeacherProfile(); }
     if (name === 'settings') {}
 }
 async function loadProjectImages() {
@@ -2179,40 +2180,44 @@ var ATELIER_IMGS = [
       .limit(20);
     var teachers = res.data || [];
     if (teachers.length === 0) {
-  document.getElementById('teachers-grid-main').innerHTML =
-    '<p style="text-align:center;color:#9a7a5a;font-family:sans-serif;padding:2rem">Aucun intervenant pour le moment.</p>';
-  return;
-}
-    // Mélange aléatoire — 4 max
+      document.getElementById('teachers-grid-main').innerHTML =
+        '<p style="text-align:center;color:#9a7a5a;font-family:sans-serif;padding:2rem">Aucun intervenant pour le moment.</p>';
+      return;
+    }
+    // Mélange aléatoire conservé — 4 max
     teachers.sort(function() { return Math.random() - 0.5; });
     teachers = teachers.slice(0, 4);
     var html = '';
     for (var i = 0; i < teachers.length; i++) {
       var t = teachers[i];
-      var initials = (t.full_name || 'IN').split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+      var initials = (t.full_name || 'IN').split(' ').map(function(w) { return w[0]; }).join('').substring(0,2).toUpperCase();
       var avatarHtml = t.avatar_url
         ? '<img src="' + t.avatar_url + '" alt="' + (t.full_name || '') + '">'
         : '<div class="teacher-card-initials">' + initials + '</div>';
       var portfolioLink = t.portfolio_url
-  ? '<a href="' + t.portfolio_url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="teacher-card-link">Voir le portfolio →</a>'
-  : '';
-      var profileLink = '<button onclick="showMiseEnRelation(this)" data-name="'+(t.full_name||'cet intervenant')+'" style="margin-top:0.8rem;width:100%;padding:0.7rem;background:none;border:1px solid rgba(160,120,70,0.25);border-radius:0.5rem;color:var(--terre);font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:left">🤝 Demander une mise en relation professionnelle</button>';
-      html += '<div class="teacher-card reveal">';
+        ? '<a href="' + t.portfolio_url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="teacher-card-link">Voir le portfolio →</a>'
+        : '';
+      var contactBtn = '<button onclick="event.stopPropagation();showMiseEnRelation(this)" data-name="' + (t.full_name || 'cet intervenant') + '" '
+        + 'style="margin-top:0.5rem;width:100%;padding:0.7rem;background:none;border:1px solid rgba(160,120,70,0.25);'
+        + 'border-radius:0.5rem;color:var(--terre);font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:left">'
+        + '🤝 Demander une mise en relation</button>';
+      var profileBtn = '<button onclick="goToTeacherProfile(\'' + t.id + '\')" '
+        + 'style="margin-top:0.5rem;width:100%;padding:0.7rem;background:var(--terre);border:none;'
+        + 'border-radius:0.5rem;color:#fff;font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:center">'
+        + 'Voir le profil →</button>';
+      html += '<div class="teacher-card reveal" onclick="goToTeacherProfile(\'' + t.id + '\')" style="cursor:pointer">';
       html += '<div class="teacher-card-avatar">' + avatarHtml + '</div>';
       html += '<div class="teacher-card-info">';
       html += '<h3 class="teacher-card-name">' + (t.full_name || 'Intervenant') + '</h3>';
       if (t.specialty) html += '<p class="teacher-card-specialty">' + t.specialty + '</p>';
-      if (t.location) html += '<p class="teacher-card-location">📍 ' + t.location + '</p>';
-      if (t.bio) html += '<p class="teacher-card-bio">' + t.bio + '</p>';
-      html += '<div class="teacher-card-links">' + profileLink + portfolioLink + '</div>';
+      if (t.location)  html += '<p class="teacher-card-location">📍 ' + t.location + '</p>';
+      if (t.bio)       html += '<p class="teacher-card-bio">' + t.bio + '</p>';
+      html += '<div class="teacher-card-links">' + profileBtn + portfolioLink + contactBtn + '</div>';
       html += '</div></div>';
     }
     var grid = document.getElementById('teachers-grid-main');
     grid.innerHTML = html;
-    // Réactiver reveal sur les nouvelles cartes
-    grid.querySelectorAll('.reveal').forEach(function(el) {
-      revealObserver.observe(el);
-    });
+    grid.querySelectorAll('.reveal').forEach(function(el) { revealObserver.observe(el); });
   } catch(e) {
     console.warn('loadTeachersHome:', e);
   }
@@ -2249,11 +2254,8 @@ async function deleteProjectImage(imageId) {
 }
 
     function goToTeacherProfile(teacherId) {
-  if (!currentUser) {
-    showPage('login');
-    return;
-  }
-  toast('Profil intervenant bientôt disponible !');
+  currentTeacherId = teacherId;
+  navigateTo('teacher-profile');
 }
     
 
@@ -2264,6 +2266,109 @@ window.addEventListener('load', function() {
     if (el) el.src = BASE_ATELIER + ATELIER_IMGS[i - 1];
   }
 });
+async function loadTeacherProfile() {
+  var page = document.getElementById('page-teacher-profile');
+  if (!page) return;
+
+  if (!currentTeacherId) { navigateTo('teachers'); return; }
+
+  page.innerHTML = '<div style="text-align:center;padding:4rem;color:var(--gris);font-family:sans-serif">Chargement...</div>';
+
+  try {
+    // Profil de l'intervenant
+    var profileRes = await sb.from('profiles')
+      .select('id, full_name, avatar_url, bio, specialty, location, portfolio_url, role, school')
+      .eq('id', currentTeacherId)
+      .single();
+    var t = profileRes.data;
+    if (!t) { page.innerHTML = '<p style="padding:2rem;font-family:sans-serif">Profil introuvable.</p>'; return; }
+
+    // Projets publics de l'intervenant
+    var projRes = await sb.from('projects')
+      .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
+      .eq('student_id', currentTeacherId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+    var projects = projRes.data || [];
+
+    // Avatar
+    var initials = (t.full_name || 'IN').split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
+    var avatarHtml = t.avatar_url
+      ? '<img src="' + t.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+      : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;'
+        + 'background:var(--terre);color:#fff;font-size:2rem;font-weight:700;border-radius:50%;font-family:sans-serif">' + initials + '</div>';
+
+    var portfolioBtn = t.portfolio_url
+      ? '<a href="' + t.portfolio_url + '" target="_blank" rel="noopener noreferrer" '
+        + 'style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.65rem 1.2rem;'
+        + 'border:1px solid rgba(160,120,70,0.3);border-radius:0.5rem;color:var(--terre);'
+        + 'font-family:sans-serif;font-size:0.82rem;text-decoration:none">🔗 Portfolio</a>'
+      : '';
+
+    var contactBtn = '<button onclick="showMiseEnRelation(this)" data-name="' + (t.full_name || 'cet intervenant') + '" '
+      + 'style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.65rem 1.2rem;'
+      + 'background:var(--terre);border:none;border-radius:0.5rem;color:#fff;'
+      + 'font-family:sans-serif;font-size:0.82rem;cursor:pointer">🤝 Mise en relation</button>';
+
+    var gridHtml = '';
+    if (projects.length === 0) {
+      gridHtml = '<p style="color:var(--gris);font-family:sans-serif;font-size:0.88rem;'
+               + 'text-align:center;padding:2rem 0">Aucun projet publié pour le moment.</p>';
+    } else {
+      // On réutilise le rendu de renderGrid via un conteneur temporaire
+      gridHtml = '<div id="teacher-profile-grid" class="projects-grid"></div>';
+    }
+
+    page.innerHTML =
+      // Bouton retour
+      '<div style="padding:1rem 1.2rem">'
+      + '<button onclick="history.back()" style="background:none;border:none;color:var(--terre);'
+      + 'font-family:sans-serif;font-size:0.85rem;cursor:pointer">← Retour</button>'
+      + '</div>'
+
+      // Header intervenant
+      + '<div style="padding:1.5rem 1.2rem 1rem;display:flex;gap:1.2rem;align-items:flex-start">'
+      + '<div style="width:72px;height:72px;flex-shrink:0;border-radius:50%;overflow:hidden;'
+      + 'border:2px solid rgba(139,69,19,0.2)">' + avatarHtml + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.3rem">'
+      + '<h1 style="margin:0;font-size:1.3rem;font-family:serif;color:#2c1a0e">' + (t.full_name || 'Intervenant') + '</h1>'
+      + '<span style="display:inline-block;padding:0.18rem 0.6rem;background:rgba(139,69,19,0.12);'
+      + 'color:var(--terre,#8B4513);border-radius:2rem;font-size:0.65rem;font-family:sans-serif;'
+      + 'font-weight:700;letter-spacing:0.06em;white-space:nowrap">📐 INTERVENANT</span>'
+      + '</div>'
+      + (t.specialty ? '<p style="margin:0 0 0.25rem;font-size:0.88rem;color:var(--terre);font-family:sans-serif">' + t.specialty + '</p>' : '')
+      + (t.location  ? '<p style="margin:0 0 0.25rem;font-size:0.82rem;color:var(--gris);font-family:sans-serif">📍 ' + t.location + '</p>' : '')
+      + (t.school    ? '<p style="margin:0;font-size:0.78rem;color:var(--gris);font-family:sans-serif">🏛 ' + t.school + '</p>' : '')
+      + '</div></div>'
+
+      // Bio
+      + (t.bio
+        ? '<div style="padding:0 1.2rem 1.2rem;font-size:0.88rem;color:#4a3728;font-family:sans-serif;line-height:1.6">' + t.bio + '</div>'
+        : '')
+
+      // Boutons action
+      + '<div style="padding:0 1.2rem 1.5rem;display:flex;gap:0.6rem;flex-wrap:wrap">'
+      + contactBtn + portfolioBtn
+      + '</div>'
+
+      // Séparateur + Galerie
+      + '<div style="border-top:1px solid rgba(160,120,70,0.15);padding:1.2rem">'
+      + '<p style="font-size:0.62rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;'
+      + 'color:#b0956a;font-family:sans-serif;margin:0 0 1rem">Projets publiés</p>'
+      + gridHtml
+      + '</div>';
+
+    // Injecter la grille si projets existants
+    if (projects.length > 0) {
+      renderGrid('teacher-profile-grid', projects);
+    }
+
+  } catch(e) {
+    console.warn('loadTeacherProfile:', e);
+    page.innerHTML = '<p style="padding:2rem;font-family:sans-serif;color:var(--gris)">Erreur de chargement.</p>';
+  }
+}
     async function loadHomeRecentProjects() {
   try {
     var query = sb.from('projects')
