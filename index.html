@@ -271,6 +271,23 @@
     <div id="galerie-grid"></div>
   </div>
 </div>
+  // Séparateur + Galerie propre
+      + '<div style="border-top:1px solid rgba(160,120,70,0.15);padding:1.2rem">'
+      + '<p style="font-size:0.62rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;'
+      + 'color:#b0956a;font-family:sans-serif;margin:0 0 1rem">Projets publiés</p>'
+      + (projects.length > 0
+          ? '<div id="teacher-profile-grid" class="projects-grid"></div>'
+          : '<p style="color:var(--gris);font-family:sans-serif;font-size:0.88rem;text-align:center;padding:1rem 0">Aucun projet publié.</p>')
+      + '</div>'
+
+      // Projets validés par cet intervenant
+      + (validatedProjects.length > 0
+          ? '<div style="border-top:1px solid rgba(160,120,70,0.15);padding:1.2rem">'
+            + '<p style="font-size:0.62rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;'
+            + 'color:#b0956a;font-family:sans-serif;margin:0 0 1rem">Projets validés par cet intervenant</p>'
+            + '<div id="teacher-validated-grid" class="projects-grid"></div>'
+            + '</div>'
+          : '');
 
 <!-- PAGE PARAMÈTRES -->
 <!-- PAGE PARAMÈTRES -->
