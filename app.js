@@ -386,22 +386,54 @@ async function doLogout() {
 }
 
 async function loadStats() {
+  // Affichage immédiat des tirets pendant le chargement
+  ['stat-projects','stat-students','stat-visitors','stat-teachers'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+
   try {
-    var projRes = await sb.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'approved');
-    var studRes = await sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student');
-    var visitRes = await sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'visitor');
-    var teachRes = await sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'teacher');
+    // Requêtes parallèles (4x plus rapide)
+    var results = await Promise.all([
+      sb.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+      sb.from('profiles').select('*',  { count: 'exact', head: true }).eq('role', 'student'),
+      sb.from('profiles').select('*',  { count: 'exact', head: true }).eq('role', 'visitor'),
+      sb.from('profiles').select('*',  { count: 'exact', head: true }).eq('role', 'teacher')
+    ]);
 
-    var p = document.getElementById('stat-projects');
-    var s = document.getElementById('stat-students');
-    var v = document.getElementById('stat-visitors');
-    var t = document.getElementById('stat-teachers');
+    var counts = [
+      results[0].count || 0,
+      results[1].count || 0,
+      results[2].count || 0,
+      results[3].count || 0
+    ];
+    var ids = ['stat-projects','stat-students','stat-visitors','stat-teachers'];
 
-    if (p) p.textContent = projRes.count || 0;
-    if (s) s.textContent = studRes.count || 0;
-    if (v) v.textContent = visitRes.count || 0;
-    if (t) t.textContent = teachRes.count || 0;
+    ids.forEach(function(id, i) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var target = counts[i];
+      if (target === 0) { el.textContent = '0'; return; }
+      // Count-up animé
+      var start = 0;
+      var duration = 900;
+      var startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        el.textContent = Math.floor(progress * target);
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = target;
+      }
+      requestAnimationFrame(step);
+    });
+
   } catch(e) {
+    // En cas d'erreur réseau, on remet des tirets propres
+    ['stat-projects','stat-students','stat-visitors','stat-teachers'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && el.textContent === '—') el.textContent = '—';
+    });
     console.warn('loadStats:', e);
   }
 }
