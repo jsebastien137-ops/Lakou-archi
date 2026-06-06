@@ -2324,14 +2324,15 @@ loadHomeRecentProjects();
 async function loadGalerie() {
   if (!currentUser) { showPage('login'); return; }
 
-  var targetId   = currentGalerieUserId || currentUser.id;
+  var targetId     = currentGalerieUserId || currentUser.id;
   var isOwnGallery = targetId === currentUser.id;
 
   var grid = document.getElementById('galerie-grid');
   if (grid) grid.innerHTML = '<p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>';
 
+  // Ajout de role + school pour le badge
   var profileRes = await sb.from('profiles')
-    .select('full_name, avatar_url, bio, specialty, location')
+    .select('full_name, avatar_url, bio, specialty, location, role, school')
     .eq('id', targetId)
     .single();
   var profile = profileRes.data;
@@ -2339,6 +2340,7 @@ async function loadGalerie() {
   var avatarEl   = document.getElementById('galerie-avatar');
   var titleEl    = document.getElementById('galerie-title');
   var subtitleEl = document.getElementById('galerie-subtitle');
+  var badgeEl    = document.getElementById('galerie-badge');
 
   if (avatarEl && profile) {
     if (profile.avatar_url) {
@@ -2347,10 +2349,44 @@ async function loadGalerie() {
       avatarEl.textContent = (profile.full_name || 'E').charAt(0).toUpperCase();
     }
   }
-  if (titleEl)    titleEl.textContent    = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
+
+  if (titleEl) titleEl.textContent = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
+
   if (subtitleEl) subtitleEl.textContent = isOwnGallery
     ? 'Tous vos projets archivés sur Lakou Archi.'
     : (profile && profile.specialty ? profile.specialty : 'Étudiant en architecture');
+
+  // Badge de rôle — visible uniquement sur le profil public d'un autre utilisateur
+  if (!isOwnGallery && profile) {
+    var roleLabels = {
+      student : '🎓 Étudiant(e)',
+      teacher : '📐 Enseignant · Architecte',
+      admin   : '⚙️ Administrateur',
+      visitor : '👁 Visiteur'
+    };
+    var roleText  = roleLabels[profile.role] || '🎓 Étudiant(e)';
+    var schoolText = profile.school ? ' · ' + profile.school : '';
+    var badgeHtml  = '<span style="display:inline-block;margin-top:0.4rem;padding:0.22rem 0.7rem;'
+                   + 'background:rgba(139,69,19,0.09);color:var(--terre,#8B4513);'
+                   + 'border-radius:2rem;font-size:0.72rem;font-family:sans-serif;font-weight:600;'
+                   + 'letter-spacing:0.04em">' + roleText + schoolText + '</span>';
+    if (badgeEl) {
+      badgeEl.innerHTML = badgeHtml;
+    } else if (subtitleEl) {
+      // Pas d'élément dédié → on injecte juste après le subtitle sans le toucher
+      var existing = document.getElementById('galerie-injected-badge');
+      if (existing) existing.remove();
+      var div = document.createElement('div');
+      div.id = 'galerie-injected-badge';
+      div.innerHTML = badgeHtml;
+      subtitleEl.insertAdjacentElement('afterend', div);
+    }
+  } else {
+    // Profil propre ou pas de profil → on nettoie le badge injecté si présent
+    var old = document.getElementById('galerie-injected-badge');
+    if (old) old.remove();
+    if (badgeEl) badgeEl.innerHTML = '';
+  }
 
   var query = sb.from('projects')
     .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
@@ -2373,6 +2409,7 @@ async function loadGalerie() {
 
   renderGrid('galerie-grid', projects);
 }
+
     function selectAtelierType(type, btn) {
   currentAtelierType = type;
   document.querySelectorAll('.atelier-type-btn').forEach(function(b) {
@@ -3310,14 +3347,15 @@ loadHomeRecentProjects();
 async function loadGalerie() {
   if (!currentUser) { showPage('login'); return; }
 
-  var targetId   = currentGalerieUserId || currentUser.id;
+  var targetId     = currentGalerieUserId || currentUser.id;
   var isOwnGallery = targetId === currentUser.id;
 
   var grid = document.getElementById('galerie-grid');
   if (grid) grid.innerHTML = '<p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>';
 
+  // Ajout de role + school pour le badge
   var profileRes = await sb.from('profiles')
-    .select('full_name, avatar_url, bio, specialty, location')
+    .select('full_name, avatar_url, bio, specialty, location, role, school')
     .eq('id', targetId)
     .single();
   var profile = profileRes.data;
@@ -3325,6 +3363,7 @@ async function loadGalerie() {
   var avatarEl   = document.getElementById('galerie-avatar');
   var titleEl    = document.getElementById('galerie-title');
   var subtitleEl = document.getElementById('galerie-subtitle');
+  var badgeEl    = document.getElementById('galerie-badge');
 
   if (avatarEl && profile) {
     if (profile.avatar_url) {
@@ -3333,10 +3372,44 @@ async function loadGalerie() {
       avatarEl.textContent = (profile.full_name || 'E').charAt(0).toUpperCase();
     }
   }
-  if (titleEl)    titleEl.textContent    = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
+
+  if (titleEl) titleEl.textContent = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
+
   if (subtitleEl) subtitleEl.textContent = isOwnGallery
     ? 'Tous vos projets archivés sur Lakou Archi.'
     : (profile && profile.specialty ? profile.specialty : 'Étudiant en architecture');
+
+  // Badge de rôle — visible uniquement sur le profil public d'un autre utilisateur
+  if (!isOwnGallery && profile) {
+    var roleLabels = {
+      student : '🎓 Étudiant(e)',
+      teacher : '📐 Enseignant · Architecte',
+      admin   : '⚙️ Administrateur',
+      visitor : '👁 Visiteur'
+    };
+    var roleText  = roleLabels[profile.role] || '🎓 Étudiant(e)';
+    var schoolText = profile.school ? ' · ' + profile.school : '';
+    var badgeHtml  = '<span style="display:inline-block;margin-top:0.4rem;padding:0.22rem 0.7rem;'
+                   + 'background:rgba(139,69,19,0.09);color:var(--terre,#8B4513);'
+                   + 'border-radius:2rem;font-size:0.72rem;font-family:sans-serif;font-weight:600;'
+                   + 'letter-spacing:0.04em">' + roleText + schoolText + '</span>';
+    if (badgeEl) {
+      badgeEl.innerHTML = badgeHtml;
+    } else if (subtitleEl) {
+      // Pas d'élément dédié → on injecte juste après le subtitle sans le toucher
+      var existing = document.getElementById('galerie-injected-badge');
+      if (existing) existing.remove();
+      var div = document.createElement('div');
+      div.id = 'galerie-injected-badge';
+      div.innerHTML = badgeHtml;
+      subtitleEl.insertAdjacentElement('afterend', div);
+    }
+  } else {
+    // Profil propre ou pas de profil → on nettoie le badge injecté si présent
+    var old = document.getElementById('galerie-injected-badge');
+    if (old) old.remove();
+    if (badgeEl) badgeEl.innerHTML = '';
+  }
 
   var query = sb.from('projects')
     .select('*, student:profiles!student_id(id, full_name, avatar_url, school)')
