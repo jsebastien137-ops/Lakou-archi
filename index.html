@@ -381,8 +381,8 @@
   <div class="menu-item" onclick="closeMenu();currentAtelierType=null;if(currentUser){navigateTo('home');setTimeout(function(){document.querySelector('#page-home .chambres-list, .ateliers-grid').scrollIntoView({behavior:'smooth'})},400);}else{navigateTo('login');}">Les Ateliers <span>→</span></div>
 <div class="menu-item" onclick="closeMenu();navigateTo('home');setTimeout(function(){document.querySelector('.teachers-section').scrollIntoView({behavior:'smooth'})},400)">Intervenants <span>&#8594;</span></div>
   <div class="menu-section">Mon espace</div>
-  <div id="menu-dashboard" class="menu-item hidden" onclick="closeMenu();navigateTo('dashboard')">Mon tableau de bord <span>&#8594;</span></div>
-  <div id="menu-galerie" class="menu-item hidden" onclick="closeMenu();navigateTo('galerie')">Ma galerie <span>&#8594;</span></div>
+  <div id="menu-dashboard" class="menu-item hidden" onclick="handleVisitorMenuClick(event,'dashboard')">Mon tableau de bord <span style="font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif;letter-spacing:0.04em">Académique</span> <span>&#8594;</span></div>
+<div id="menu-galerie" class="menu-item hidden" onclick="handleVisitorMenuClick(event,'galerie')">Ma galerie <span style="font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif;letter-spacing:0.04em">Académique</span> <span>&#8594;</span></div>
   <div id="menu-settings" class="menu-item hidden" onclick="closeMenu();navigateTo('settings')">Param&#232;tres <span>&#8594;</span></div>
   <div id="menu-validate" class="menu-item hidden" onclick="closeMenu();navigateTo('validate')">Valider des projets <span>&#8594;</span></div>
 
@@ -639,7 +639,7 @@
     </div>
   </div>
 
-  <div class="atelier-cta" onclick="currentUser ? navigateTo('explorer-ateliers') : navigateTo('login')">
+  <div class="atelier-cta" onclick="handleAtelierCta()">
     <span>Découvrir tous les ateliers</span>
     <span class="atelier-cta-arrow">→</span>
   </div>
