@@ -4168,3 +4168,12 @@ function handleVisitorMenuClick(e, page) {
   }
   showPage(page);
 }
+function handleAtelierCta() {
+  if (!currentUser) { navigateTo('login'); return; }
+  var role = currentProfile ? currentProfile.role : 'visitor';
+  if (role === 'visitor') {
+    toast('Les Ateliers sont réservés aux membres académiques.', 'error');
+    return;
+  }
+  navigateTo('explorer-ateliers');
+}
