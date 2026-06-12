@@ -204,27 +204,27 @@ function stopSlideshow() { clearInterval(slideTimer); }
 
 
 function updateNavForUser() {
-  var signinBtn = document.getElementById('nav-signin-btn');
-  if (signinBtn) signinBtn.classList.add('hidden');
-  var dashLink = document.getElementById('nav-dashboard-link');
-  if (dashLink) dashLink.classList.remove('hidden');
-  var logoutBtn = document.getElementById('nav-logout-btn');
-  if (logoutBtn) logoutBtn.classList.remove('hidden');
+  var role = currentProfile ? currentProfile.role : 'student';
+  var isVisitor = role === 'visitor';
+
   var menuDash = document.getElementById('menu-dashboard');
-  if (menuDash) menuDash.classList.remove('hidden');
   var menuGalerie = document.getElementById('menu-galerie');
-if (menuGalerie) menuGalerie.classList.remove('hidden');
-var menuSettings = document.getElementById('menu-settings');
-if (menuSettings) menuSettings.classList.remove('hidden');
+  var menuSettings = document.getElementById('menu-settings');
   var menuLogout = document.getElementById('menu-logout-item');
-  if (menuLogout) menuLogout.classList.remove('hidden');
   var menuLogin = document.getElementById('menu-login-item');
-  if (menuLogin) menuLogin.classList.add('hidden');
   var menuRegister = document.getElementById('menu-register-btn');
-  if (menuRegister) menuRegister.classList.add('hidden');
   var menuLogoutBtn = document.getElementById('menu-logout-btn');
-if (menuLogoutBtn) menuLogoutBtn.classList.remove('hidden');
+
+  // Visiteur : pas de dashboard, pas de galerie
+  if (menuDash) menuDash.classList.toggle('hidden', isVisitor);
+  if (menuGalerie) menuGalerie.classList.toggle('hidden', isVisitor);
+  if (menuSettings) menuSettings.classList.remove('hidden');
+  if (menuLogout) menuLogout.classList.remove('hidden');
+  if (menuLogin) menuLogin.classList.add('hidden');
+  if (menuRegister) menuRegister.classList.add('hidden');
+  if (menuLogoutBtn) menuLogoutBtn.classList.remove('hidden');
 }
+
 function updateNavForGuest() {
   var signinBtn = document.getElementById('nav-signin-btn');
   if (signinBtn) signinBtn.classList.remove('hidden');
@@ -316,7 +316,7 @@ async function loadProfileData() {
       var e1 = document.getElementById('dash-firstname'); if(e1) e1.textContent = fn.split(' ')[0];
       var e2 = document.getElementById('dash-email'); if(e2) e2.textContent = currentUser.email;
       var e3 = document.getElementById('dash-fullname'); if(e3) e3.textContent = fn;
-      var roleLabel = res.data.role === 'teacher' ? 'Enseignant(e)' : res.data.role === 'admin' ? 'Administrateur' : 'Etudiant(e)';
+      var roleLabel = res.data.role === 'teacher' ? 'Enseignant(e)' : res.data.role === 'admin' ? 'Administrateur' : res.data.role === 'visitor' ? 'Visiteur' : 'Etudiant(e)';
       var e5 = document.getElementById('dash-role-label'); if(e5) e5.textContent = roleLabel;
       var e6 = document.getElementById('dash-bio');
 if (e6) e6.textContent = res.data.bio || '';
@@ -356,8 +356,12 @@ async function doRegister() {
   btn.disabled = true; btn.textContent = 'Inscription...';
   try {
     var res = await sb.auth.signUp({email: email, password: password, options: {data: {full_name: name, role: role}}});
-    if (res.error) { showErr('register-error', res.error.message); btn.disabled = false; btn.textContent = 'Creer mon compte'; return; }
-    if (res.data && res.data.user && school) { await sb.from('profiles').update({ school: school }).eq('id', res.data.user.id); } // ← AJOUTER
+if (res.error) { showErr('register-error', res.error.message); btn.disabled = false; btn.textContent = 'Creer mon compte'; return; }
+if (res.data && res.data.user) {
+  var updateData = { role: role, full_name: name };
+  if (school) updateData.school = school;
+  await sb.from('profiles').update(updateData).eq('id', res.data.user.id);
+}
     var s = document.getElementById('register-success');
     s.textContent = 'Compte cree ! Vous pouvez maintenant vous connecter.';
     s.classList.remove('hidden');
