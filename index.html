@@ -827,7 +827,7 @@
       <label class="field-label">Mot de passe</label>
       <input type="password" id="reg-password" class="field-input" placeholder="Minimum 6 caracteres">
       <label class="field-label">Je suis</label>
-    <select id="reg-role" class="field-select" onchange="toggleRoleInfo(this.value)">
+    <select id="reg-role" class="field-select" onchange="toggleRoleInfo(this.value)" style="background:#fff;color:var(--terre);border:1px solid rgba(160,120,70,0.4);padding:0.75rem;width:100%;font-family:sans-serif;font-size:0.9rem;-webkit-appearance:none;appearance:none">
   <option value="student">Étudiant(e) en architecture</option>
   <option value="teacher">Enseignant(e) / Architecte</option>
   <option value="visitor">Visiteur / Recruteur</option>
@@ -854,7 +854,12 @@
 </div>
       <button class="auth-btn" id="register-btn" onclick="doRegister()">Creer mon compte</button>
     </div>
+ <div id="register-success" style="display:none;margin-top:1.2rem;background:#edf7ed;border:1px solid #a8d4a8;border-radius:0.5rem;padding:1rem 1.2rem;font-family:sans-serif;font-size:0.85rem;color:#2a6b2a;line-height:1.6;text-align:center">
+  ✅ Compte créé avec succès !<br>
+  <strong>Consultez votre boîte mail</strong> pour confirmer votre adresse avant de vous connecter.
+</div>
   </div>
+  
 </div>
 
 <!-- PAGE FORGOT -->
