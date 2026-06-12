@@ -1548,14 +1548,22 @@ function toggleNotif(enabled) {
 
 async function doDeleteAccount() {
   if (!currentUser) { return; }
-  if (!confirm('Supprimer definitivement votre compte et tous vos contenus ?')) { return; }
-  await sb.from('chambre_posts').delete().eq('author_id', currentUser.id);
-  await sb.from('profiles').delete().eq('id', currentUser.id);
-  await sb.auth.signOut();
-  toast('Compte supprime.');
-  showPage('home');
+  if (!confirm('Supprimer définitivement votre compte et tous vos contenus ? Cette action est irréversible.')) { return; }
+  try {
+    var res = await sb.rpc('delete_user_account');
+    if (res.error) {
+      toast('Erreur lors de la suppression : ' + res.error.message, 'error');
+      return;
+    }
+    currentUser = null;
+    currentProfile = null;
+    updateNavForGuest();
+    toast('Compte supprimé définitivement.');
+    showPage('home');
+  } catch(e) {
+    toast('Erreur : ' + e.message, 'error');
+  }
 }
-  
 
 
   async function loadAtelierPosts(type) {
