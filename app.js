@@ -216,12 +216,13 @@ function updateNavForUser() {
   var menuLogoutBtn = document.getElementById('menu-logout-btn');
 
   // Visiteur : pas de dashboard, pas de galerie
-  if (menuDash) menuDash.classList.toggle('hidden', isVisitor);
+  // Visiteur : visible mais bloqué avec badge
+if (menuDash) menuDash.classList.remove('hidden');
+if (menuGalerie) menuGalerie.classList.remove('hidden');
 var badgeDash = document.getElementById('badge-academique-dash');
 var badgeGal = document.getElementById('badge-academique-gal');
 if (badgeDash) badgeDash.style.display = isVisitor ? 'inline' : 'none';
 if (badgeGal) badgeGal.style.display = isVisitor ? 'inline' : 'none';
-    if (menuGalerie) menuGalerie.classList.toggle('hidden', isVisitor);
   if (menuSettings) menuSettings.classList.remove('hidden');
   if (menuLogout) menuLogout.classList.remove('hidden');
   if (menuLogin) menuLogin.classList.add('hidden');
@@ -2209,56 +2210,7 @@ var ATELIER_IMGS = [
   if (!studentId) return;
   showPage('explorer');
 }
-    async function loadTeachersHome() {
-  try {
-    var res = await sb.from('profiles')
-      .select('id, full_name, avatar_url, bio, role, specialty, location, portfolio_url')
-      .eq('role', 'teacher')
-      .limit(20);
-    var teachers = res.data || [];
-    if (teachers.length === 0) {
-      document.getElementById('teachers-grid-main').innerHTML =
-        '<p style="text-align:center;color:#9a7a5a;font-family:sans-serif;padding:2rem">Aucun intervenant pour le moment.</p>';
-      return;
-    }
-    // Mélange aléatoire conservé — 4 max
-    teachers.sort(function() { return Math.random() - 0.5; });
-    teachers = teachers.slice(0, 4);
-    var html = '';
-    for (var i = 0; i < teachers.length; i++) {
-      var t = teachers[i];
-      var initials = (t.full_name || 'IN').split(' ').map(function(w) { return w[0]; }).join('').substring(0,2).toUpperCase();
-      var avatarHtml = t.avatar_url
-        ? '<img src="' + t.avatar_url + '" alt="' + (t.full_name || '') + '">'
-        : '<div class="teacher-card-initials">' + initials + '</div>';
-      var portfolioLink = t.portfolio_url
-        ? '<a href="' + t.portfolio_url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="teacher-card-link">Voir le portfolio →</a>'
-        : '';
-      var contactBtn = '<button onclick="event.stopPropagation();showMiseEnRelation(this)" data-name="' + (t.full_name || 'cet intervenant') + '" '
-        + 'style="margin-top:0.5rem;width:100%;padding:0.7rem;background:none;border:1px solid rgba(160,120,70,0.25);'
-        + 'border-radius:0.5rem;color:var(--terre);font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:left">'
-        + '🤝 Demander une mise en relation</button>';
-      var profileBtn = '<button onclick="goToTeacherProfile(\'' + t.id + '\')" '
-        + 'style="margin-top:0.5rem;width:100%;padding:0.7rem;background:var(--terre);border:none;'
-        + 'border-radius:0.5rem;color:#fff;font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:center">'
-        + 'Voir le profil →</button>';
-      html += '<div class="teacher-card reveal" onclick="goToTeacherProfile(\'' + t.id + '\')" style="cursor:pointer">';
-      html += '<div class="teacher-card-avatar">' + avatarHtml + '</div>';
-      html += '<div class="teacher-card-info">';
-      html += '<h3 class="teacher-card-name">' + (t.full_name || 'Intervenant') + '</h3>';
-      if (t.specialty) html += '<p class="teacher-card-specialty">' + t.specialty + '</p>';
-      if (t.location)  html += '<p class="teacher-card-location">📍 ' + t.location + '</p>';
-      if (t.bio)       html += '<p class="teacher-card-bio">' + t.bio + '</p>';
-      html += '<div class="teacher-card-links">' + profileBtn + portfolioLink + contactBtn + '</div>';
-      html += '</div></div>';
-    }
-    var grid = document.getElementById('teachers-grid-main');
-    grid.innerHTML = html;
-    grid.querySelectorAll('.reveal').forEach(function(el) { revealObserver.observe(el); });
-  } catch(e) {
-    console.warn('loadTeachersHome:', e);
-  }
-}
+    
 async function deleteProjectImage(imageId) {
   if (!confirm('Supprimer cette image ?')) return;
 
@@ -2289,7 +2241,57 @@ async function deleteProjectImage(imageId) {
   }
   toast('Image supprimée.');
 }
-
+async function loadTeachersHome() {
+  try {
+    var res = await sb.from('profiles')
+      .select('id, full_name, avatar_url, bio, role, specialty, location, portfolio_url')
+      .eq('role', 'teacher')
+      .limit(20);
+    var teachers = res.data || [];
+    if (teachers.length === 0) {
+      document.getElementById('teachers-grid-main').innerHTML =
+        '<p style="text-align:center;color:#9a7a5a;font-family:sans-serif;padding:2rem">Aucun intervenant pour le moment.</p>';
+      return;
+    }
+    teachers.sort(function() { return Math.random() - 0.5; });
+    teachers = teachers.slice(0, 4);
+    var html = '';
+    for (var i = 0; i < teachers.length; i++) {
+      var t = teachers[i];
+      var initials = (t.full_name || 'IN').split(' ').map(function(w) { return w[0]; }).join('').substring(0,2).toUpperCase();
+      var avatarHtml = t.avatar_url
+        ? '<img src="' + t.avatar_url + '" alt="' + (t.full_name || '') + '">'
+        : '<div class="teacher-card-initials">' + initials + '</div>';
+      var portfolioLink = t.portfolio_url
+        ? '<a href="' + t.portfolio_url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="teacher-card-link">Voir le portfolio →</a>'
+        : '';
+      var contactBtn = '<button onclick="event.stopPropagation();showMiseEnRelation(this)" data-name="' + (t.full_name || 'cet intervenant') + '" '
+        + 'style="margin-top:0.5rem;width:100%;padding:0.7rem;background:none;border:1px solid rgba(160,120,70,0.25);'
+        + 'border-radius:0.5rem;color:var(--terre);font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:left">'
+        + '🤝 Demander une mise en relation</button>';
+      var profileBtn = '<button onclick="event.stopPropagation();goToTeacherProfile(\'' + t.id + '\')" '
+        + 'style="margin-top:0.5rem;width:100%;padding:0.7rem;background:var(--terre);border:none;'
+        + 'border-radius:0.5rem;color:#fff;font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:center">'
+        + 'Voir le profil →</button>';
+      html += '<div class="teacher-card reveal" onclick="goToTeacherProfile(\'' + t.id + '\')" style="cursor:pointer">';
+      html += '<div class="teacher-card-avatar">' + avatarHtml + '</div>';
+      html += '<div class="teacher-card-info">';
+      html += '<h3 class="teacher-card-name">' + (t.full_name || 'Intervenant') + '</h3>';
+      if (t.specialty) html += '<p class="teacher-card-specialty">' + t.specialty + '</p>';
+      if (t.location)  html += '<p class="teacher-card-location">📍 ' + t.location + '</p>';
+      if (t.bio)       html += '<p class="teacher-card-bio">' + t.bio + '</p>';
+      html += '<div class="teacher-card-links">' + profileBtn + portfolioLink + contactBtn + '</div>';
+      html += '</div></div>';
+    }
+    var grid = document.getElementById('teachers-grid-main');
+    if (grid) {
+      grid.innerHTML = html;
+      grid.querySelectorAll('.reveal').forEach(function(el) { revealObserver.observe(el); });
+    }
+  } catch(e) {
+    console.warn('loadTeachersHome:', e);
+  }
+}
     function goToTeacherProfile(teacherId) {
   currentTeacherId = teacherId;
   navigateTo('teacher-profile');
