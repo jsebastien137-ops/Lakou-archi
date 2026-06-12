@@ -217,7 +217,11 @@ function updateNavForUser() {
 
   // Visiteur : pas de dashboard, pas de galerie
   if (menuDash) menuDash.classList.toggle('hidden', isVisitor);
-  if (menuGalerie) menuGalerie.classList.toggle('hidden', isVisitor);
+var badgeDash = document.getElementById('badge-academique-dash');
+var badgeGal = document.getElementById('badge-academique-gal');
+if (badgeDash) badgeDash.style.display = isVisitor ? 'inline' : 'none';
+if (badgeGal) badgeGal.style.display = isVisitor ? 'inline' : 'none';
+    if (menuGalerie) menuGalerie.classList.toggle('hidden', isVisitor);
   if (menuSettings) menuSettings.classList.remove('hidden');
   if (menuLogout) menuLogout.classList.remove('hidden');
   if (menuLogin) menuLogin.classList.add('hidden');
@@ -291,10 +295,17 @@ async function doLogin() {
     await loadProfileData();
     if (currentProfile) loadThemeFromProfile(currentProfile);
     updateAdminUI();
-    toast('Connexion réussie !');
-    document.querySelectorAll('.page').forEach(function(p) { p.classList.add('hidden'); });
-    document.getElementById('page-dashboard').classList.remove('hidden');
-    window.scrollTo(0, 0);
+    var role = currentProfile ? currentProfile.role : 'student';
+if (role === 'visitor') {
+  toast('Connexion réussie ! Explorez la plateforme librement.');
+  showPage('home');
+} else {
+  toast('Connexion réussie !');
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.add('hidden'); });
+  document.getElementById('page-dashboard').classList.remove('hidden');
+}
+window.scrollTo(0, 0);
+
  } catch(e) {
     clearTimeout(timer);
     console.warn('Login catch:', e);
@@ -3342,52 +3353,7 @@ var ATELIER_IMGS = [
   if (!studentId) return;
   showPage('explorer');
 }
-    async function loadTeachersHome() {
-  try {
-    var res = await sb.from('profiles')
-      .select('id, full_name, avatar_url, bio, role, specialty, location, portfolio_url')
-      .eq('role', 'teacher')
-      .limit(20);
-    var teachers = res.data || [];
-    if (teachers.length === 0) {
-  document.getElementById('teachers-grid-main').innerHTML =
-    '<p style="text-align:center;color:#9a7a5a;font-family:sans-serif;padding:2rem">Aucun intervenant pour le moment.</p>';
-  return;
-}
-    // Mélange aléatoire — 4 max
-    teachers.sort(function() { return Math.random() - 0.5; });
-    teachers = teachers.slice(0, 4);
-    var html = '';
-    for (var i = 0; i < teachers.length; i++) {
-      var t = teachers[i];
-      var initials = (t.full_name || 'IN').split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-      var avatarHtml = t.avatar_url
-        ? '<img src="' + t.avatar_url + '" alt="' + (t.full_name || '') + '">'
-        : '<div class="teacher-card-initials">' + initials + '</div>';
-      var portfolioLink = t.portfolio_url
-  ? '<a href="' + t.portfolio_url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="teacher-card-link">Voir le portfolio →</a>'
-  : '';
-      var profileLink = '<button onclick="showMiseEnRelation(this)" data-name="'+(t.full_name||'cet intervenant')+'" style="margin-top:0.8rem;width:100%;padding:0.7rem;background:none;border:1px solid rgba(160,120,70,0.25);border-radius:0.5rem;color:var(--terre);font-family:sans-serif;font-size:0.82rem;cursor:pointer;text-align:left">🤝 Demander une mise en relation professionnelle</button>';
-      html += '<div class="teacher-card reveal">';
-      html += '<div class="teacher-card-avatar">' + avatarHtml + '</div>';
-      html += '<div class="teacher-card-info">';
-      html += '<h3 class="teacher-card-name">' + (t.full_name || 'Intervenant') + '</h3>';
-      if (t.specialty) html += '<p class="teacher-card-specialty">' + t.specialty + '</p>';
-      if (t.location) html += '<p class="teacher-card-location">📍 ' + t.location + '</p>';
-      if (t.bio) html += '<p class="teacher-card-bio">' + t.bio + '</p>';
-      html += '<div class="teacher-card-links">' + profileLink + portfolioLink + '</div>';
-      html += '</div></div>';
-    }
-    var grid = document.getElementById('teachers-grid-main');
-    grid.innerHTML = html;
-    // Réactiver reveal sur les nouvelles cartes
-    grid.querySelectorAll('.reveal').forEach(function(el) {
-      revealObserver.observe(el);
-    });
-  } catch(e) {
-    console.warn('loadTeachersHome:', e);
-  }
-}
+    
 async function deleteProjectImage(imageId) {
   if (!confirm('Supprimer cette image ?')) return;
 
@@ -4193,3 +4159,12 @@ var compressImageLivret = function(file, maxDim, quality) {
     reader.readAsDataURL(file);
   });
 };
+function handleVisitorMenuClick(e, page) {
+  e.preventDefault();
+  var role = currentProfile ? currentProfile.role : 'visitor';
+  if (role === 'visitor') {
+    toast('Cette section est réservée aux membres académiques.', 'error');
+    return;
+  }
+  showPage(page);
+}
