@@ -173,17 +173,13 @@
   <div class="menu-item" onclick="closeMenu();currentAtelierType=null;if(currentUser){navigateTo('home');setTimeout(function(){document.querySelector('#page-home .chambres-list, .ateliers-grid').scrollIntoView({behavior:'smooth'})},400);}else{navigateTo('login');}">Les Ateliers <span>→</span></div>
 <div class="menu-item" onclick="closeMenu();navigateTo('home');setTimeout(function(){document.querySelector('.teachers-section').scrollIntoView({behavior:'smooth'})},400)">Intervenants <span>&#8594;</span></div>
   <div class="menu-section">Mon espace</div>
-  <li id="menu-dashboard">
-  <a href="#" onclick="handleVisitorMenuClick(event, 'dashboard')">
-    Tableau de bord
-    <span id="badge-academique-dash" class="badge-academique" style="display:none;font-size:0.6rem;background:var(--ocre);color:#fff;padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle">Académique</span>
-  </a>
+  <li id="menu-dashboard" onclick="handleVisitorMenuClick(event,'dashboard')" style="cursor:pointer;list-style:none">
+  Mon tableau de bord
+  <span id="badge-academique-dash" style="display:none;font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif">Académique</span>
 </li>
-<li id="menu-galerie">
-  <a href="#" onclick="handleVisitorMenuClick(event, 'galerie')">
-    Ma Galerie
-    <span id="badge-academique-gal" class="badge-academique" style="display:none;font-size:0.6rem;background:var(--ocre);color:#fff;padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle">Académique</span>
-  </a>
+<li id="menu-galerie" onclick="handleVisitorMenuClick(event,'galerie')" style="cursor:pointer;list-style:none">
+  Ma galerie
+  <span id="badge-academique-gal" style="display:none;font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif">Académique</span>
 </li>
   <div id="menu-settings" class="menu-item hidden" onclick="closeMenu();navigateTo('settings')">Param&#232;tres <span>&#8594;</span></div>
   <div id="menu-validate" class="menu-item hidden" onclick="closeMenu();navigateTo('validate')">Valider des projets <span>&#8594;</span></div>
