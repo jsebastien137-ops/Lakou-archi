@@ -355,12 +355,26 @@ async function doRegister() {
   if (!cgu || !cgu.checked) { showErr('register-error', 'Vous devez accepter les conditions d\'utilisation.'); return; }
   btn.disabled = true; btn.textContent = 'Inscription...';
   try {
-    var res = await sb.auth.signUp({email: email, password: password, options: {data: {full_name: name, role: role}}});
-if (res.error) { showErr('register-error', res.error.message); btn.disabled = false; btn.textContent = 'Creer mon compte'; return; }
+    var res = await sb.auth.signUp({
+  email: email, 
+  password: password, 
+  options: { data: { full_name: name, role: role } }
+});
+if (res.error) { 
+  showErr('register-error', res.error.message); 
+  btn.disabled = false; 
+  btn.textContent = 'Creer mon compte'; 
+  return; 
+}
 if (res.data && res.data.user) {
-  var updateData = { role: role, full_name: name };
+  var updateData = { 
+    id: res.data.user.id,
+    email: email,
+    full_name: name,
+    role: role 
+  };
   if (school) updateData.school = school;
-  await sb.from('profiles').update(updateData).eq('id', res.data.user.id);
+  await sb.from('profiles').upsert(updateData, { onConflict: 'id' });
 }
     var s = document.getElementById('register-success');
     s.textContent = 'Compte cree ! Vous pouvez maintenant vous connecter.';
