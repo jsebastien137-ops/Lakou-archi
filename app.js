@@ -171,12 +171,25 @@ function closeLightbox() {
 }
 
 function toggleMenu() {
+  var menu = document.getElementById('nav-menu');
   var btn = document.getElementById('hamburger-btn');
-  var drawer = document.getElementById('menu-drawer');
-  var overlay = document.getElementById('menu-overlay');
-  btn.classList.toggle('open');
-  drawer.classList.toggle('open');
-  overlay.classList.toggle('open');
+  if (!menu) return;
+  var isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  } else {
+    menu.classList.add('open');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    // Fermeture automatique sur clic d'un item
+    var items = menu.querySelectorAll('.menu-item, li[onclick], li > a');
+    items.forEach(function(item) {
+      item.addEventListener('click', function() {
+        menu.classList.remove('open');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }, { once: true });
+    });
+  }
 }
 function closeMenu() {
   document.getElementById('hamburger-btn').classList.remove('open');
@@ -389,8 +402,8 @@ if (res.data && res.data.user) {
   await sb.from('profiles').upsert(updateData, { onConflict: 'id' });
 }
     var s = document.getElementById('register-success');
-    s.textContent = 'Compte cree ! Vous pouvez maintenant vous connecter.';
-    s.classList.remove('hidden');
+    if (s) { s.textContent = 'Compte créé !'; s.classList.remove('hidden'); }
+    showConfirmModal();
     btn.disabled = false; btn.textContent = 'Creer mon compte';
   } catch(e) { showErr('register-error', 'Erreur: ' + e.message); btn.disabled = false; btn.textContent = 'Creer mon compte'; }
 }
@@ -4250,4 +4263,12 @@ function handleAtelierCta() {
     return;
   }
   navigateTo('explorer-ateliers');
+}
+function showConfirmModal() {
+  var modal = document.getElementById('modal-confirm-email');
+  if (modal) modal.style.display = 'flex';
+}
+function closeConfirmModal() {
+  var modal = document.getElementById('modal-confirm-email');
+  if (modal) modal.style.display = 'none';
 }
