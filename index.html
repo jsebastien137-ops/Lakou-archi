@@ -7,7 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <link rel="stylesheet" href="styles.css">
   <style></style>
-  </head><body>!-- PAGE ATELIER GALERIE --&gt;
+  </head><body>
+<!-- PAGE ATELIER GALERIE -->
 <div id="page-ateliers" class="page hidden">
   <div class="atelier-gallery-page">
     <div class="atelier-gallery-header">
@@ -210,7 +211,7 @@
   <button id="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
 </div>
-</head><body>!-- PAGE ATELIER GALERIE --&gt;
+
 <div id="page-ateliers" class="page hidden">
   <div class="atelier-gallery-page">
     <div class="atelier-gallery-header">
@@ -1236,5 +1237,27 @@
 </div>
 <div id="page-teacher-profile" class="page hidden" style="padding-top:64px;min-height:100vh;background:var(--creme)"></div>
   <script src="app.js"></script>
+<!-- MODAL CONFIRMATION INSCRIPTION -->
+<div id="modal-confirm-email" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:1rem;padding:2rem 1.5rem;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18);font-family:sans-serif;text-align:center">
+    <div style="font-size:2rem;margin-bottom:0.8rem">✉️</div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--terre);margin:0 0 1rem">Vérifiez votre boîte mail</h3>
+    <p style="font-size:0.88rem;color:#555;line-height:1.6;margin-bottom:1.5rem">
+      <strong>Important :</strong> Un e-mail de confirmation vient de vous être envoyé par Supabase. 
+      Vous devez impérativement cliquer sur le lien dans votre boîte mail 
+      pour activer votre compte et accéder à la plateforme.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:0.7rem">
+      <button onclick="window.open('https://mail.google.com','_blank');closeConfirmModal()" 
+        style="background:var(--terre);color:#fff;border:none;border-radius:0.6rem;padding:0.85rem;font-size:0.9rem;cursor:pointer;font-family:sans-serif">
+        📬 Accéder à Gmail
+      </button>
+      <button onclick="closeConfirmModal()" 
+        style="background:none;border:1px solid rgba(160,120,70,0.3);border-radius:0.6rem;padding:0.85rem;font-size:0.9rem;color:var(--terre);cursor:pointer;font-family:sans-serif">
+        OK, j'ai compris
+      </button>
+    </div>
+  </div>
+</div>
 </body>
     </html>
