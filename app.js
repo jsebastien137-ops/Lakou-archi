@@ -185,14 +185,17 @@ function toggleMenu() {
     if (overlay) overlay.classList.add('open');
     if (btn) btn.setAttribute('aria-expanded', 'true');
     // Fermeture automatique sur clic d'un item
-    var items = drawer.querySelectorAll('.menu-item, li[onclick], li > a');
-    items.forEach(function(item) {
-      item.addEventListener('click', function() {
-        drawer.classList.remove('open');
-        if (overlay) overlay.classList.remove('open');
-        if (btn) btn.setAttribute('aria-expanded', 'false');
-      }, { once: true });
-    });
+    var items = drawer.querySelectorAll('.menu-item, li[onclick], li > a, [onclick]');
+items.forEach(function(item) {
+  item.addEventListener('click', function closeOnClick() {
+    setTimeout(function() {
+      drawer.classList.remove('open');
+      if (overlay) overlay.classList.remove('open');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }, 50);
+    item.removeEventListener('click', closeOnClick);
+  });
+});
   }
 }
 
