@@ -171,30 +171,29 @@ function closeLightbox() {
 }
 
 function toggleMenu() {
-  var menu = document.getElementById('nav-menu');
+  var drawer = document.getElementById('menu-drawer');
+  var overlay = document.getElementById('menu-overlay');
   var btn = document.getElementById('hamburger-btn');
-  if (!menu) return;
-  var isOpen = menu.classList.contains('open');
+  if (!drawer) return;
+  var isOpen = drawer.classList.contains('open');
   if (isOpen) {
-    menu.classList.remove('open');
+    drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
     if (btn) btn.setAttribute('aria-expanded', 'false');
   } else {
-    menu.classList.add('open');
+    drawer.classList.add('open');
+    if (overlay) overlay.classList.add('open');
     if (btn) btn.setAttribute('aria-expanded', 'true');
     // Fermeture automatique sur clic d'un item
-    var items = menu.querySelectorAll('.menu-item, li[onclick], li > a');
+    var items = drawer.querySelectorAll('.menu-item, li[onclick], li > a');
     items.forEach(function(item) {
       item.addEventListener('click', function() {
-        menu.classList.remove('open');
+        drawer.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
         if (btn) btn.setAttribute('aria-expanded', 'false');
       }, { once: true });
     });
   }
-}
-function closeMenu() {
-  document.getElementById('hamburger-btn').classList.remove('open');
-  document.getElementById('menu-drawer').classList.remove('open');
-  document.getElementById('menu-overlay').classList.remove('open');
 }
 
 function goToSlide(n) {
