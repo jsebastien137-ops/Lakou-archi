@@ -636,6 +636,7 @@ async function loadDashboard() {
       listEl.innerHTML=html;
     }
   } catch(e) { console.log('dash err:',e); }
+  loadDashAtelierBadges();
 }
 function openAtelierOrLogin(type) {
   if (!currentUser) {
@@ -2311,38 +2312,26 @@ async function loadDashAtelierBadges() {
   if (!container) return;
 
   var ateliers = [
-    { key: 'sketches',         label: 'Carnets de croquis' },
-    { key: 'concept_models',   label: 'Maquettes conceptuelles' },
-    { key: 'plans_in_progress',label: 'Plans en cours' },
-    { key: 'project_evolution',label: 'Évolutions du projet' },
-    { key: 'final_plans',      label: 'Plans définitifs validés' },
-    { key: 'final_models',     label: 'Maquettes finales' },
-    { key: 'artistic_works',   label: 'Travaux artistiques' }
-  ];
+  { key: 'sketches',    label: 'Carnets de croquis' },
+  { key: 'conceptual',  label: 'Maquettes conceptuelles' },
+  { key: 'plans',       label: 'Plans en cours' },
+  { key: 'evolution',   label: 'Évolutions du projet' },
+  { key: 'validated',   label: 'Plans définitifs validés' },
+  { key: 'final',       label: 'Maquettes finales' },
+  { key: 'artistic',    label: 'Travaux artistiques' }
+];
 
   try {
-    // Récupérer les projets de l'utilisateur
-    var res = await sb.from('projects')
-      .select('id')
-      .eq('student_id', currentUser.id);
-    if (res.error || !res.data || res.data.length === 0) {
-      container.innerHTML = '<p style="font-size:0.78rem;color:var(--gris);font-family:sans-serif">Aucun atelier utilisé pour le moment.</p>';
-      return;
-    }
-    var projectIds = res.data.map(function(p) { return p.id; });
+  var postsRes = await sb.from('chambre_posts')
+    .select('chambre_type')
+    .eq('author_id', currentUser.id);
+  if (postsRes.error || !postsRes.data) { return; }
 
-    // Récupérer tous les posts atelier de ces projets
-    var postsRes = await sb.from('chambre_posts')
-      .select('atelier_type')
-      .in('project_id', projectIds);
-    if (postsRes.error || !postsRes.data) { return; }
-
-    // Compter par atelier
-    var counts = {};
-    postsRes.data.forEach(function(p) {
-      if (!p.atelier_type) return;
-      counts[p.atelier_type] = (counts[p.atelier_type] || 0) + 1;
-    });
+  var counts = {};
+  postsRes.data.forEach(function(p) {
+    if (!p.chambre_type) return;
+    counts[p.chambre_type] = (counts[p.chambre_type] || 0) + 1;
+  });
 
     // Générer les badges
     var html = '<p style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gris);font-family:sans-serif;width:100%;margin-bottom:0.3rem">Mes ateliers</p>';
