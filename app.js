@@ -2305,6 +2305,89 @@ window.addEventListener('load', function() {
     if (el) el.src = BASE_ATELIER + ATELIER_IMGS[i - 1];
   }
 });
+async function loadDashAtelierBadges() {
+  if (!currentUser) return;
+  var container = document.getElementById('dash-ateliers-badges');
+  if (!container) return;
+
+  var ateliers = [
+    { key: 'sketches',         label: 'Carnets de croquis' },
+    { key: 'concept_models',   label: 'Maquettes conceptuelles' },
+    { key: 'plans_in_progress',label: 'Plans en cours' },
+    { key: 'project_evolution',label: 'Évolutions du projet' },
+    { key: 'final_plans',      label: 'Plans définitifs validés' },
+    { key: 'final_models',     label: 'Maquettes finales' },
+    { key: 'artistic_works',   label: 'Travaux artistiques' }
+  ];
+
+  try {
+    // Récupérer les projets de l'utilisateur
+    var res = await sb.from('projects')
+      .select('id')
+      .eq('student_id', currentUser.id);
+    if (res.error || !res.data || res.data.length === 0) {
+      container.innerHTML = '<p style="font-size:0.78rem;color:var(--gris);font-family:sans-serif">Aucun atelier utilisé pour le moment.</p>';
+      return;
+    }
+    var projectIds = res.data.map(function(p) { return p.id; });
+
+    // Récupérer tous les posts atelier de ces projets
+    var postsRes = await sb.from('chambre_posts')
+      .select('atelier_type')
+      .in('project_id', projectIds);
+    if (postsRes.error || !postsRes.data) { return; }
+
+    // Compter par atelier
+    var counts = {};
+    postsRes.data.forEach(function(p) {
+      if (!p.atelier_type) return;
+      counts[p.atelier_type] = (counts[p.atelier_type] || 0) + 1;
+    });
+
+    // Générer les badges
+    var html = '<p style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gris);font-family:sans-serif;width:100%;margin-bottom:0.3rem">Mes ateliers</p>';
+    var hasAny = false;
+
+    ateliers.forEach(function(a) {
+      var count = counts[a.key] || 0;
+      if (count === 0) return; // N'affiche que les ateliers utilisés
+      hasAny = true;
+      html += '<button onclick="goToDashAtelier(\'' + a.key + '\')" style="'
+        + 'display:inline-flex;align-items:center;gap:0.4rem;'
+        + 'background:#fff;border:1px solid rgba(160,120,70,0.3);'
+        + 'border-radius:999px;padding:0.35rem 0.8rem;'
+        + 'font-family:sans-serif;font-size:0.78rem;color:var(--terre);'
+        + 'cursor:pointer;transition:background 0.2s"'
+        + ' onmouseover="this.style.background=\'var(--creme)\'"'
+        + ' onmouseout="this.style.background=\'#fff\'">'
+        + a.label
+        + '<span style="background:var(--ocre);color:#fff;border-radius:999px;'
+        + 'font-size:0.65rem;padding:1px 7px;font-weight:700">'
+        + count + '</span>'
+        + '</button>';
+    });
+
+    if (!hasAny) {
+      html += '<p style="font-size:0.78rem;color:var(--gris);font-family:sans-serif">Aucun atelier utilisé pour le moment.</p>';
+    }
+
+    container.innerHTML = html;
+  } catch(e) {
+    console.warn('loadDashAtelierBadges:', e);
+  }
+}
+
+function goToDashAtelier(atelierKey) {
+  // Navigue vers l'atelier et filtre sur l'utilisateur courant
+  navigateTo('explorer-ateliers');
+  // Petit délai pour laisser la page se charger
+  setTimeout(function() {
+    var role = currentProfile ? currentProfile.role : 'student';
+    if (typeof selectAtelierType === 'function') {
+      selectAtelierType(atelierKey, true); // true = filtre mes posts
+    }
+  }, 300);
+}
 async function loadTeacherProfile() {
   var page = document.getElementById('page-teacher-profile');
   if (!page) return;
