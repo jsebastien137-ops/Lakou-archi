@@ -198,7 +198,14 @@ items.forEach(function(item) {
 });
   }
 }
-
+function closeMenu() {
+  var drawer = document.getElementById('menu-drawer');
+  var overlay = document.getElementById('menu-overlay');
+  var btn = document.getElementById('hamburger-btn');
+  if (drawer) drawer.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
 function goToSlide(n) {
   var slides = document.querySelectorAll('.slide');
   var dots = document.querySelectorAll('.dot');
@@ -3163,11 +3170,7 @@ async function doAddAtelierComment(postId) {
 }
   var pageHistory = ['home'];
 
-function navigateTo(name) {
-  pageHistory.push(name);
-  window.history.pushState({ page: name }, '', '#' + name);
-  showPage(name);
-}
+
 
 window.addEventListener('popstate', function(e) {
   if (e.state && e.state.page) {
