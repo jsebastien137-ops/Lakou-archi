@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription — Lakou Archi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="shell-slot"></div>
+
+<div class="page" id="page-register">
+<div class="auth-page">
+<div class="auth-box">
+<a class="auth-logo" href="/">Lakou<span>.</span>Archi</a>
+<h1 class="auth-title">Créer un compte</h1>
+<p class="auth-sub">Déjà inscrit ? <a href="/login/">Se connecter</a></p>
+<div class="auth-error hidden" id="register-error"></div>
+
+<label class="field-label">Nom complet</label>
+<input class="field-input" id="reg-name" placeholder="Marie-Claire Estimé" type="text"/>
+<label class="field-label">Email</label>
+<input class="field-input" id="reg-email" placeholder="votre@email.com" type="email"/>
+<label class="field-label">Mot de passe</label>
+<input class="field-input" id="reg-password" placeholder="Minimum 6 caractères" type="password"/>
+<label class="field-label">Je suis</label>
+<select class="field-select" id="reg-role" onchange="toggleRoleInfo(this.value)" style="background:#fff;color:var(--terre);border:1px solid rgba(160,120,70,0.4);padding:0.75rem;width:100%;font-family:sans-serif;font-size:0.9rem;-webkit-appearance:none;appearance:none">
+<option value="student">Étudiant(e) en architecture</option>
+<option value="teacher">Enseignant(e) / Architecte</option>
+<option value="visitor">Visiteur / Recruteur</option>
+</select>
+<label class="field-label">École ou institution <span style="font-size:0.72rem;color:var(--gris)">(optionnel)</span></label>
+<input class="field-input" id="reg-school" placeholder="Ex: FASCH, Quisqueya, INIFAH..." type="text"/>
+
+<div id="role-info-academic" style="font-size:0.75rem;color:var(--gris);font-family:sans-serif;padding:0.6rem 0.8rem;background:rgba(193,123,63,0.06);border-radius:0.4rem;margin-top:0.4rem;margin-bottom:0.8rem">
+  Accès complet aux ateliers, upload de projets, commentaires et corrections.
+</div>
+<div id="role-info-visitor" style="display:none;font-size:0.75rem;color:var(--gris);font-family:sans-serif;padding:0.6rem 0.8rem;background:rgba(100,150,200,0.06);border-radius:0.4rem;margin-top:0.4rem;margin-bottom:0.8rem">
+  Accès aux projets validés et galeries publiques. Peut suivre des profils et liker. Ne peut pas commenter ni accéder aux ateliers privés.
+</div>
+
+<div style="display:flex;align-items:flex-start;gap:0.8rem;margin-bottom:1rem;padding:0.8rem;background:rgba(193,123,63,0.08);border:1px solid rgba(193,123,63,0.2)">
+<input id="cgu-check" style="margin-top:3px;flex-shrink:0;accent-color:var(--ocre)" type="checkbox"/>
+<label for="cgu-check" style="font-size:0.78rem;color:var(--gris);line-height:1.5;cursor:pointer">
+  J'accepte les
+  <a href="/legal/" style="color:var(--ocre);text-decoration:underline">Conditions Générales d'Utilisation</a>
+  et la
+  <a href="/legal/" style="color:var(--ocre);text-decoration:underline">Politique de Confidentialité</a>.
+  Je comprends que mes contenus restent ma propriété et peuvent être supprimés à tout moment.
+  <a href="/legal/" style="color:var(--ocre);font-size:0.72rem;display:block;margin-top:0.3rem">Lire les contrats complets →</a>
+</label>
+</div>
+
+<button class="auth-btn" id="register-btn" onclick="doRegister()">Créer mon compte</button>
+
+<div class="hidden" id="register-success" style="margin-top:1.2rem;background:#edf7ed;border:1px solid #a8d4a8;border-radius:0.5rem;padding:1rem 1.2rem;font-family:sans-serif;font-size:0.85rem;color:#2a6b2a;line-height:1.6;text-align:center">
+  Compte créé avec succès !<br/>
+<strong>Consultez votre boîte mail</strong> pour confirmer votre adresse avant de vous connecter.
+</div>
+</div>
+</div>
+</div>
+
+<script src="/app.js"></script>
+<script src="/register/app.js"></script>
+</body>
+</html>
