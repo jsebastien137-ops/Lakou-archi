@@ -90,7 +90,61 @@ max-height: 100vh;
   border:1.5px solid var(--terre);margin-top:0.5rem;
 }
 .menu-btn-outline:hover{background:var(--terre);color:#fff}
+/* ============================================================
+   PATCH CSS — Lakou Archi — Étape 2 (Menu)
+   ============================================================
+   Ajout uniquement — rien à supprimer cette fois.
+   Colle ce bloc n'importe où dans styles.css, par exemple juste
+   après le bloc ".menu-btn-outline:hover { ... }" (juste avant
+   le commentaire /* SLIDESHOW */).
+   ============================================================ */
 
+/* --- Ateliers en accordéon --- */
+.menu-item-expand { position: relative; }
+.menu-caret { width: 15px; height: 15px; flex-shrink: 0; transition: transform 0.25s; color: var(--gris); }
+.menu-item-expand.open .menu-caret { transform: rotate(180deg); color: var(--ocre); }
+
+.menu-submenu {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+  border-bottom: 1px solid var(--gris-light);
+}
+.menu-submenu.open { max-height: 400px; }
+.menu-subitem {
+  font-size: 0.8rem; color: var(--gris);
+  padding: 0.6rem 0 0.6rem 1rem;
+  border-left: 2px solid var(--gris-light);
+  margin-left: 0.2rem;
+  cursor: pointer; transition: color 0.2s, border-color 0.2s;
+}
+.menu-subitem:hover { color: var(--ocre); border-color: var(--ocre); }
+.menu-subitem-all { color: var(--ocre); font-weight: 500; display: flex; justify-content: space-between; }
+
+/* --- Bientôt (Rubrique / Forum) --- */
+.menu-soon {
+  font-size: 0.58rem; letter-spacing: 0.04em;
+  background: var(--gris-light); color: var(--gris);
+  padding: 1px 7px; border-radius: 999px;
+  font-family: sans-serif; font-weight: 600;
+}
+
+/* --- Tableau de bord + icône réglages --- */
+.menu-item-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 0; border-bottom: 1px solid var(--gris-light);
+  font-size: 0.9rem; color: var(--text); cursor: pointer;
+}
+.menu-item-row > span { display: flex; align-items: center; }
+.menu-icon-btn {
+  background: none; border: none; cursor: pointer;
+  width: 30px; height: 30px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; color: var(--gris);
+  transition: background 0.2s, color 0.2s;
+}
+.menu-icon-btn:hover { background: var(--gris-light); color: var(--terre); }
+.menu-icon-btn svg { width: 17px; height: 17px; }
 /* SLIDESHOW */
 .slideshow{
   position:relative;width:100%;height:100vh;
