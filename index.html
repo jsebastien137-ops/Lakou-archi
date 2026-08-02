@@ -47,20 +47,19 @@
 <div class="menu-section">Découvrir</div>
 <div class="menu-item" onclick="closeMenu();navigateTo('home')">Accueil <span>→</span></div>
 
-<div class="menu-item menu-item-expand" id="menu-ateliers-toggle" onclick="toggleAteliersMenu()">
-  Ateliers
-  <svg class="menu-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9 L12 15 L18 9"/></svg>
-</div>
-<div class="menu-submenu" id="menu-ateliers-submenu">
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('sketches')">Carnets de croquis</div>
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('conceptual')">Maquettes conceptuelles</div>
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('plans')">Plans en cours</div>
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('evolution')">Évolutions du projet</div>
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('validated')">Plans définitifs validés</div>
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('final')">Maquettes finales</div>
-  <div class="menu-subitem" onclick="closeMenu();goToAteliers('artistic')">Travaux artistiques</div>
-  <div class="menu-subitem menu-subitem-all" onclick="closeMenu();navigateTo('explorer-ateliers')">Tous les ateliers <span>→</span></div>
-</div>
+<details class="menu-drop" id="menu-ateliers-drop">
+  <summary>Ateliers</summary>
+  <div class="menu-drop-sub">
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('sketches')">Carnets de croquis</div>
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('conceptual')">Maquettes conceptuelles</div>
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('plans')">Plans en cours</div>
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('evolution')">Évolutions du projet</div>
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('validated')">Plans définitifs validés</div>
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('final')">Maquettes finales</div>
+    <div class="menu-subitem" onclick="closeMenu();goToAteliers('artistic')">Travaux artistiques</div>
+    <div class="menu-subitem menu-subitem-all" onclick="closeMenu();navigateTo('explorer-ateliers')">Tous les ateliers <span>→</span></div>
+  </div>
+</details>
 
 <div class="menu-item" onclick="closeMenu();navigateTo('projects-public')">Projets <span>→</span></div>
 
