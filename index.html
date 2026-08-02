@@ -9,6 +9,115 @@
 <link href="styles.css" rel="stylesheet"/>
 </head>
 <body>
+<div id="search-overlay" style="display:none;position:fixed;inset:0;z-index: 99999 !important;;background:rgba(245,237,224,0.98);padding:80px 1.5rem 2rem;overflow-y:auto">
+<button onclick="toggleSearch()" style="position:fixed;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--terre)">✕</button>
+<div style="max-width:600px;margin:0 auto">
+<input id="search-input" oninput="doSearch(this.value)" placeholder="Rechercher un projet, un étudiant, une publication..." style="width:100%;padding:1rem 1.2rem;border:2px solid rgba(160,120,70,0.3);border-radius:999px;font-size:1rem;font-family:sans-serif;background:#fff;color:var(--terre);outline:none;margin-bottom:1.5rem" type="text"/>
+<button onclick="doSearch(document.getElementById('search-input').value)" style="width:100%;padding:0.8rem;background:var(--terre);color:#fff;border:none;border-radius:999px;font-size:0.9rem;font-family:sans-serif;font-weight:600;cursor:pointer;margin-bottom:1.5rem">
+  🔍 Rechercher
+</button>
+<div id="search-results"></div>
+</div>
+</div>
+<!-- NAV -->
+<nav id="nav">
+<button class="btn-back" id="global-back-btn" onclick="history.back()" style="display:none">
+  ← Retour
+</button>
+<div id="scroll-bar"></div>
+<div class="nav-logo" onclick="showPage('home')">
+<svg fill="none" height="22" style="display:inline-block;vertical-align:middle;margin-right:6px;" viewbox="0 0 230 230" width="22">
+<path d="M55,20 L55,210" stroke="currentColor" stroke-linecap="round" stroke-width="10"></path>
+<path d="M55,210 L155,210" stroke="currentColor" stroke-linecap="round" stroke-width="10"></path>
+<path d="M55,20 L185,210" opacity="0.7" stroke="currentColor" stroke-linecap="round" stroke-width="8"></path>
+<path d="M55,138 L158,138" stroke="#e0b978" stroke-linecap="round" stroke-width="7"></path>
+<circle cx="55" cy="20" fill="#e0b978" r="7"></circle>
+</svg>
+  Lakou<span>.</span>Archi
+</div>
+<button id="search-btn" onclick="toggleSearch()" style="background:none;border:none;cursor:pointer;padding:0.4rem;color:var(--terre);font-size:1.2rem">🔍</button>
+<button class="hamburger" id="hamburger-btn" onclick="toggleMenu()">
+<span></span><span></span><span></span>
+</button>
+</nav>
+<!-- MENU DRAWER -->
+<div id="menu-overlay" onclick="closeMenu()"></div>
+<div id="menu-drawer">
+
+<div class="menu-section">Découvrir</div>
+<div class="menu-item" onclick="closeMenu();navigateTo('home')">Accueil <span>→</span></div>
+
+<div class="menu-item menu-item-expand" id="menu-ateliers-toggle" onclick="toggleAteliersMenu()">
+  Ateliers
+  <svg class="menu-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9 L12 15 L18 9"/></svg>
+</div>
+<div class="menu-submenu hidden" id="menu-ateliers-submenu">
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('sketches')">Carnets de croquis</div>
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('conceptual')">Maquettes conceptuelles</div>
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('plans')">Plans en cours</div>
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('evolution')">Évolutions du projet</div>
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('validated')">Plans définitifs validés</div>
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('final')">Maquettes finales</div>
+  <div class="menu-subitem" onclick="closeMenu();goToAteliers('artistic')">Travaux artistiques</div>
+  <div class="menu-subitem menu-subitem-all" onclick="closeMenu();navigateTo('explorer-ateliers')">Tous les ateliers <span>→</span></div>
+</div>
+
+<div class="menu-item" onclick="closeMenu();navigateTo('projects-public')">Projets <span>→</span></div>
+
+<div class="menu-item" id="menu-rubrique" onclick="closeMenu();toast('La Rubrique arrive bientôt.')">
+  La Rubrique <span class="menu-soon">Bientôt</span>
+</div>
+
+<div class="menu-section">Mon espace</div>
+<li id="menu-galerie" onclick="handleVisitorMenuClick(event,'galerie')" style="cursor:pointer;list-style:none">
+  Galerie
+  <span id="badge-academique-gal" style="display:none;font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif">Académique</span>
+</li>
+<li id="menu-dashboard" class="menu-item-row" style="list-style:none">
+  <span onclick="handleVisitorMenuClick(event,'dashboard')">
+    Tableau de bord
+    <span id="badge-academique-dash" style="display:none;font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif">Académique</span>
+  </span>
+  <button class="menu-icon-btn" onclick="event.stopPropagation();closeMenu();navigateTo('settings')" aria-label="Paramètres" title="Paramètres">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M3.5 12 L6 12 M18 12 L20.5 12 M6.1 6.1 L7.8 7.8 M16.2 16.2 L17.9 17.9 M6.1 17.9 L7.8 16.2 M16.2 7.8 L17.9 6.1"/></svg>
+  </button>
+</li>
+<div class="menu-item hidden" id="menu-stats" onclick="closeMenu();toast('Statistiques — bientôt disponible.')">
+  Statistiques <span>→</span>
+</div>
+<div class="menu-item hidden" id="menu-validate" onclick="closeMenu();navigateTo('validate')">Valider des projets <span>→</span></div>
+
+<div class="menu-section">Communauté</div>
+<div class="menu-item" id="menu-forum" onclick="closeMenu();toast('Le forum arrive bientôt.')">
+  Forum <span class="menu-soon">Bientôt</span>
+</div>
+<div class="menu-item" onclick="closeMenu();navigateTo('contact')">
+  Contactez-nous <span>→</span>
+</div>
+
+<div class="menu-section">Informations</div>
+<div class="menu-item" onclick="closeMenu();navigateTo('legal')">Confidentialité <span>→</span></div>
+
+<div class="menu-section">Compte</div>
+<div class="menu-item" id="menu-login-item" onclick="closeMenu();showPage('login')">Se connecter <span>→</span></div>
+<button class="menu-btn" id="menu-register-btn" onclick="closeMenu();showPage('register')">S’inscrire gratuitement</button>
+<div style="border-top:1px solid rgba(160,120,70,0.15);margin-top:1rem;padding-top:1rem">
+<div class="menu-item hidden" id="menu-logout-btn" onclick="closeMenu();doLogout()" style="color:#c0392b">
+  Déconnexion <span>→</span>
+</div>
+</div>
+</div>
+<!-- TOAST -->
+<div id="toast"></div>
+<div class="hidden" id="notif-banner" style="position:fixed;top:64px;left:0;right:0;z-index:150;background:var(--ocre);color:var(--terre);padding:0.7rem 1.5rem;font-size:0.82rem;display:flex;align-items:center;justify-content:space-between">
+<span id="notif-text"></span>
+<button onclick="document.getElementById('notif-banner').classList.add('hidden')" style="background:none;border:none;color:var(--terre);font-size:1.2rem;cursor:pointer">✕</button>
+</div>
+<!-- LIGHTBOX -->
+<div class="hidden" id="lightbox">
+<button id="lightbox-close" onclick="closeLightbox()">✕</button>
+<img alt="" id="lightbox-img" src=""/>
+</div>
 <div class="page" id="page-home">
 
 <div style="text-align:center;padding-top:calc(64px + 1.2rem);padding-bottom:0.5rem;padding-left:1.5rem;padding-right:1.5rem;background:var(--creme)">
