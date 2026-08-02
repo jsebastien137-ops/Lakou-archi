@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Lakou Archi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="shell-slot"></div>
+
+<div class="page" id="page-login">
+<div class="auth-page">
+<div class="auth-box">
+<a class="auth-logo" href="/">Lakou<span>.</span>Archi</a>
+<h1 class="auth-title">Connexion</h1>
+<p class="auth-sub">Pas encore de compte ? <a href="/register/">S'inscrire</a></p>
+<div class="auth-error hidden" id="login-error"></div>
+<label class="field-label">Email</label>
+<input class="field-input" id="login-email" placeholder="votre@email.com" type="email"/>
+<label class="field-label">Mot de passe</label>
+<input class="field-input" id="login-password" placeholder="Minimum 6 caractères" type="password"/>
+<a class="auth-link" href="/forgot/">Mot de passe oublié ?</a>
+<button class="auth-btn" id="login-btn" onclick="doLogin()">Se connecter</button>
+</div>
+</div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
