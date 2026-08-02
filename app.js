@@ -224,6 +224,13 @@ function startSlideshow() {
 }
 function stopSlideshow() { clearInterval(slideTimer); }
 
+function toggleAteliersMenu() {
+  var toggle = document.getElementById('menu-ateliers-toggle');
+  var submenu = document.getElementById('menu-ateliers-submenu');
+  if (!toggle || !submenu) return;
+  toggle.classList.toggle('open');
+  submenu.classList.toggle('open');
+}
 
 function updateNavForUser() {
   var role = currentProfile ? currentProfile.role : 'student';
@@ -278,11 +285,15 @@ function updateAdminUI() {
   var vb = document.getElementById('dash-validate-btn');
   var nb = document.getElementById('dash-new-project-btn');
   var mv = document.getElementById('menu-validate');
+      var ms = document.getElementById('menu-stats');
   if (role === 'admin' || role === 'teacher') {
+        
     if (vb) vb.classList.remove('hidden');
     if (nb) nb.classList.add('hidden');
     if (mv) mv.classList.remove('hidden');
-  } else {
+  }
+        if (ms) { if (role === 'admin') ms.classList.remove('hidden'); else ms.classList.add('hidden'); }
+  else {
     if (vb) vb.classList.add('hidden');
     if (nb) nb.classList.remove('hidden');
     if (mv) mv.classList.add('hidden');
