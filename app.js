@@ -1829,6 +1829,7 @@ document.addEventListener('DOMContentLoaded', function() {
       await loadProfileData();
   try { if (currentProfile) loadThemeFromProfile(currentProfile); } catch(e) {}
       updateAdminUI();
+        refreshNavUI();
     }
   });
   loadLatestArticle(); // <- ici
@@ -2738,6 +2739,7 @@ document.addEventListener('DOMContentLoaded', function() {
       await loadProfileData();
   try { if (currentProfile) loadThemeFromProfile(currentProfile); } catch(e) {}
       updateAdminUI();
+        refreshNavUI();
     }
   });
   loadLatestArticle(); // <- ici
