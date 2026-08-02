@@ -199,6 +199,30 @@ function toggleMenu() {
 });
   }
 }
+function refreshNavUI() {
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    if (typeof updateNavForUser === 'function') updateNavForUser();
+    if (typeof updateAdminUI === 'function') updateAdminUI();
+  } else {
+    if (typeof updateNavForGuest === 'function') updateNavForGuest();
+  }
+}
+
+function loadShell() {
+  var slot = document.getElementById('shell-slot');
+  if (!slot) return;
+  fetch('/partials/shell.html')
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      slot.innerHTML = html;
+      refreshNavUI();
+    })
+    .catch(function(err) { console.error('Shell introuvable :', err); });
+}
+
+document.addEventListener('DOMContentLoaded', loadShell);
+
+
 function closeMenu() {
   var drawer = document.getElementById('menu-drawer');
   var overlay = document.getElementById('menu-overlay');
