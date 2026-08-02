@@ -90,37 +90,41 @@ max-height: 100vh;
   border:1.5px solid var(--terre);margin-top:0.5rem;
 }
 .menu-btn-outline:hover{background:var(--terre);color:#fff}
+
 /* ============================================================
-   PATCH CSS — Lakou Archi — Étape 2 (Menu)
+   PATCH CSS — Lakou Archi — Étape 2b (remplace l'accordéon)
    ============================================================
-   Ajout uniquement — rien à supprimer cette fois.
-   Colle ce bloc n'importe où dans styles.css, par exemple juste
-   après le bloc ".menu-btn-outline:hover { ... }" (juste avant
-   le commentaire /* SLIDESHOW */).
+   Si tu avais déjà collé le bloc "Ateliers en accordéon" du
+   patch précédent (.menu-item-expand, .menu-caret, .menu-submenu,
+   .menu-submenu.open), supprime-le et remplace-le par CELUI-CI.
+   Sinon colle-le simplement au même endroit que prévu.
    ============================================================ */
 
-/* --- Ateliers en accordéon --- */
-.menu-item-expand { position: relative; }
-.menu-caret { width: 15px; height: 15px; flex-shrink: 0; transition: transform 0.25s; color: var(--gris); }
-.menu-item-expand.open .menu-caret { transform: rotate(180deg); color: var(--ocre); }
-
-.menu-submenu {
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.3s ease;
-  border-bottom: 1px solid var(--gris-light);
+details.menu-drop { border-bottom: 1px solid var(--gris-light); }
+details.menu-drop summary {
+  list-style: none; cursor: pointer;
+  font-size: 0.9rem; color: var(--text);
+  padding: 0.9rem 0;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.menu-submenu.open { max-height: 400px; }
+details.menu-drop summary::-webkit-details-marker { display: none; }
+details.menu-drop summary::marker { content: ''; }
+details.menu-drop summary::after {
+  content: '⌄'; font-size: 1rem; color: var(--gris); transition: transform 0.2s;
+}
+details.menu-drop[open] summary::after { transform: rotate(180deg); color: var(--ocre); }
+details.menu-drop summary:hover { color: var(--ocre); }
+
+.menu-drop-sub { padding: 0.2rem 0 0.6rem 1rem; }
 .menu-subitem {
   font-size: 0.8rem; color: var(--gris);
-  padding: 0.6rem 0 0.6rem 1rem;
+  padding: 0.6rem 0 0.6rem 0.8rem;
   border-left: 2px solid var(--gris-light);
   margin-left: 0.2rem;
   cursor: pointer; transition: color 0.2s, border-color 0.2s;
 }
 .menu-subitem:hover { color: var(--ocre); border-color: var(--ocre); }
 .menu-subitem-all { color: var(--ocre); font-weight: 500; display: flex; justify-content: space-between; }
-
 /* --- Bientôt (Rubrique / Forum) --- */
 .menu-soon {
   font-size: 0.58rem; letter-spacing: 0.04em;
