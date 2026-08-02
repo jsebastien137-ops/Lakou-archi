@@ -14,7 +14,7 @@
   ← Retour
 </button>
 <div id="scroll-bar"></div>
-<div class="nav-logo" onclick="showPage('home')">
+<div class="nav-logo" onclick="window.location.href='/'">
 <svg fill="none" height="22" style="display:inline-block;vertical-align:middle;margin-right:6px;" viewbox="0 0 230 230" width="22">
 <path d="M55,20 L55,210" stroke="currentColor" stroke-linecap="round" stroke-width="10"></path>
 <path d="M55,210 L155,210" stroke="currentColor" stroke-linecap="round" stroke-width="10"></path>
@@ -34,7 +34,7 @@
 <div id="menu-drawer">
 
 <div class="menu-section">Découvrir</div>
-<div class="menu-item" onclick="closeMenu();navigateTo('home')">Accueil <span>→</span></div>
+<div class="menu-item" onclick="window.location.href='/'">Accueil <span>→</span></div>
 
 <details class="menu-drop" id="menu-ateliers-drop">
   <summary>Ateliers</summary>
@@ -46,11 +46,11 @@
     <div class="menu-subitem" onclick="closeMenu();goToAteliers('validated')">Plans définitifs validés</div>
     <div class="menu-subitem" onclick="closeMenu();goToAteliers('final')">Maquettes finales</div>
     <div class="menu-subitem" onclick="closeMenu();goToAteliers('artistic')">Travaux artistiques</div>
-    <div class="menu-subitem menu-subitem-all" onclick="closeMenu();navigateTo('explorer-ateliers')">Tous les ateliers <span>→</span></div>
+    <div class="menu-subitem menu-subitem-all" onclick="window.location.href='/ateliers/'">Tous les ateliers <span>→</span></div>
   </div>
 </details>
 
-<div class="menu-item" onclick="closeMenu();navigateTo('projects-public')">Projets <span>→</span></div>
+<div class="menu-item" onclick="window.location.href='/projets/'">Projets <span>→</span></div>
 
 <div class="menu-item" id="menu-rubrique" onclick="closeMenu();toast('La Rubrique arrive bientôt.')">
   La Rubrique <span class="menu-soon">Bientôt</span>
@@ -66,29 +66,29 @@
     Tableau de bord
     <span id="badge-academique-dash" style="display:none;font-size:0.58rem;background:var(--ocre);color:#fff;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;font-family:sans-serif">Académique</span>
   </span>
-  <button class="menu-icon-btn" onclick="event.stopPropagation();closeMenu();navigateTo('settings')" aria-label="Paramètres" title="Paramètres">
+  <button class="menu-icon-btn" onclick="event.stopPropagation();window.location.href='/settings/'" aria-label="Paramètres" title="Paramètres">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M3.5 12 L6 12 M18 12 L20.5 12 M6.1 6.1 L7.8 7.8 M16.2 16.2 L17.9 17.9 M6.1 17.9 L7.8 16.2 M16.2 7.8 L17.9 6.1"/></svg>
   </button>
 </li>
 <div class="menu-item hidden" id="menu-stats" onclick="closeMenu();toast('Statistiques — bientôt disponible.')">
   Statistiques <span>→</span>
 </div>
-<div class="menu-item hidden" id="menu-validate" onclick="closeMenu();navigateTo('validate')">Valider des projets <span>→</span></div>
+<div class="menu-item hidden" id="menu-validate" onclick="window.location.href='/validate/'">Valider des projets <span>→</span></div>
 
 <div class="menu-section">Communauté</div>
 <div class="menu-item" id="menu-forum" onclick="closeMenu();toast('Le forum arrive bientôt.')">
   Forum <span class="menu-soon">Bientôt</span>
 </div>
-<div class="menu-item" onclick="closeMenu();navigateTo('contact')">
+<div class="menu-item" onclick="window.location.href='/contact/'">
   Contactez-nous <span>→</span>
 </div>
 
 <div class="menu-section">Informations</div>
-<div class="menu-item" onclick="closeMenu();navigateTo('legal')">Confidentialité <span>→</span></div>
+<div class="menu-item" onclick="window.location.href='/legal/'">Confidentialité <span>→</span></div>
 
 <div class="menu-section">Compte</div>
-<div class="menu-item" id="menu-login-item" onclick="closeMenu();showPage('login')">Se connecter <span>→</span></div>
-<button class="menu-btn" id="menu-register-btn" onclick="closeMenu();showPage('register')">S’inscrire gratuitement</button>
+<div class="menu-item" id="menu-login-item" onclick="window.location.href='/login/'">Se connecter <span>→</span></div>
+<button class="menu-btn" id="menu-register-btn" onclick="window.location.href='/register/'">S’inscrire gratuitement</button>
 <div style="border-top:1px solid rgba(160,120,70,0.15);margin-top:1rem;padding-top:1rem">
 <div class="menu-item hidden" id="menu-logout-btn" onclick="closeMenu();doLogout()" style="color:#c0392b">
   Déconnexion <span>→</span>
@@ -113,15 +113,15 @@
 <button onclick="closeAccessModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gris)">✕</button>
 <h3 style="font-family:Georgia,serif;font-size:1.2rem;color:var(--terre);margin-bottom:0.5rem">Rejoindre Lakou Archi</h3>
 <p style="font-size:0.82rem;color:var(--gris);font-family:sans-serif;margin-bottom:1.5rem;line-height:1.6">Pour accéder à cette section, choisissez votre type de compte.</p>
-<button onclick="closeAccessModal();document.getElementById('reg-role').value='student';navigateTo('register')" style="width:100%;padding:0.9rem;background:var(--terre);color:#fff;border:none;border-radius:0.5rem;font-family:sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:0.75rem">
+<button onclick="window.location.href='/register/?role=student'" style="width:100%;padding:0.9rem;background:var(--terre);color:#fff;border:none;border-radius:0.5rem;font-family:sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:0.75rem">
       Compte Académique<br/>
 <span style="font-size:0.72rem;font-weight:400;opacity:0.8">Étudiant · Enseignant · Architecte</span>
 </button>
-<button onclick="closeAccessModal();document.getElementById('reg-role').value='visitor';navigateTo('register')" style="width:100%;padding:0.9rem;background:#f0ebe3;color:var(--terre);border:1px solid rgba(160,120,70,0.3);border-radius:0.5rem;font-family:sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:0.75rem">
+<button onclick="window.location.href='/register/?role=visitor'" style="width:100%;padding:0.9rem;background:#f0ebe3;color:var(--terre);border:1px solid rgba(160,120,70,0.3);border-radius:0.5rem;font-family:sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:0.75rem">
       Compte Visiteur<br/>
 <span style="font-size:0.72rem;font-weight:400;opacity:0.7">Recruteur · Curieux · Partenaire</span>
 </button>
-<button onclick="closeAccessModal();navigateTo('login')" style="width:100%;padding:0.6rem;background:none;color:var(--gris);border:none;font-family:sans-serif;font-size:0.82rem;cursor:pointer">
+<button onclick="window.location.href='/login/'" style="width:100%;padding:0.6rem;background:none;color:var(--gris);border:none;font-family:sans-serif;font-size:0.82rem;cursor:pointer">
       Déjà inscrit ? Se connecter →
     </button>
 </div>
