@@ -185,8 +185,9 @@ function toggleMenu() {
     if (overlay) overlay.classList.add('open');
     if (btn) btn.setAttribute('aria-expanded', 'true');
     // Fermeture automatique sur clic d'un item
-    var items = drawer.querySelectorAll('.menu-item, li[onclick], li > a, [onclick]');
-items.forEach(function(item) {
+    
+    var items = drawer.querySelectorAll('.menu-item:not(#menu-ateliers-toggle), li[onclick], li > a, [onclick]:not(#menu-ateliers-toggle)');
+      items.forEach(function(item) {
   item.addEventListener('click', function closeOnClick() {
     setTimeout(function() {
       drawer.classList.remove('open');
