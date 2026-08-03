@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ateliers — Lakou Archi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="shell-slot"></div>
+
+<div class="page" id="page-ateliers">
+<div class="atelier-gallery-page">
+<div class="atelier-gallery-header">
+<div class="atelier-type-selector" id="atelier-type-selector">
+<button class="atelier-type-btn" data-type="sketches" onclick="selectAtelierType('sketches', this)">Carnets de croquis</button>
+<button class="atelier-type-btn" data-type="conceptual" onclick="selectAtelierType('conceptual', this)">Maquettes conceptuelles</button>
+<button class="atelier-type-btn" data-type="plans" onclick="selectAtelierType('plans', this)">Plans en cours</button>
+<button class="atelier-type-btn" data-type="evolution" onclick="selectAtelierType('evolution', this)">Évolutions</button>
+<button class="atelier-type-btn" data-type="validated" onclick="selectAtelierType('validated', this)">Plans validés</button>
+<button class="atelier-type-btn" data-type="final" onclick="selectAtelierType('final', this)">Maquettes finales</button>
+<button class="atelier-type-btn" data-type="artistic" onclick="selectAtelierType('artistic', this)">Travaux artistiques</button>
+</div>
+<div class="atelier-gallery-header-inner">
+<a href="/" style="font-size:0.72rem;color:rgba(255,255,255,0.45);cursor:pointer;margin-bottom:1rem;display:inline-block">← Les Ateliers</a>
+<h1 class="atelier-gallery-title" id="atelier-gallery-title">—</h1>
+<p class="atelier-gallery-subtitle" id="atelier-gallery-subtitle">Espace communautaire</p>
+</div>
+</div>
+<div class="atelier-gallery-body">
+<div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:1.5rem;width:100%">
+<label class="atelier-upload-zone">
+<p>🖼️ Images</p>
+<small>JPG, PNG · Max 10 MB</small>
+<input accept="image/jpeg,image/png" class="upload-input" multiple="" onchange="doAtelierUploadMultiple(this)" type="file"/>
+</label>
+<label class="atelier-upload-zone">
+<p>📄 Documents</p>
+<small>PDF · Max 10 MB</small>
+<input accept="application/pdf" class="upload-input" onchange="doAtelierUpload(this)" type="file"/>
+</label>
+<div id="upload-progress" style="display:none;margin-top:1rem;background:rgba(160,120,70,0.1);border-radius:0.5rem;padding:0.8rem;text-align:center;font-size:0.82rem;color:var(--terre);font-family:sans-serif">
+  ⏳ Upload en cours... veuillez patienter
+</div>
+<div id="atelier-post-grid" style="margin-top:1.5rem"></div>
+</div>
+</div>
+</div>
+</div>
+
+<script src="/app.js"></script>
+<script src="/ateliers/app.js"></script>
+</body>
+</html>
