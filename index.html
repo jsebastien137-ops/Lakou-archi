@@ -64,7 +64,7 @@
   </div>
 </details>
 
-<div class="menu-item" onclick="closeMenu();navigateTo('projects-public')">Projets <span>→</span></div>
+<div class="menu-item" onclick="closeMenu();window.location.href='/projets/'">Projets <span>→</span></div>
 
 <div class="menu-item" id="menu-rubrique" onclick="closeMenu();toast('La Rubrique arrive bientôt.')">
   La Rubrique <span class="menu-soon">Bientôt</span>
@@ -221,7 +221,7 @@ Architecture · Étudiants haïtiens
 </div>
 <div class="hero-aventure">
 <div class="hero-cta">
-<button class="btn-hero-primary" onclick="currentUser ? navigateTo('projects-public') : navigateTo('login')">Voir les projets</button>
+<button class="btn-hero-primary" onclick="window.location.href='/projets/'">Voir les projets</button>
 <button class="btn-hero-secondary" onclick="showPage('register')">Rejoindre la communauté</button>
 </div>
 </div>
@@ -242,7 +242,7 @@ Architecture · Étudiants haïtiens
 <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gris);font-size:0.85rem">Chargement...</div>
 </div>
 <div style="text-align:center;margin-top:2rem">
-<button class="btn-secondary" onclick="showPage('projects-public')">Voir tous les projets</button>
+<button class="btn-secondary" onclick="window.location.href='/projets/'">Voir tous les projets</button>
 </div>
 </div>
 </section>
@@ -342,7 +342,7 @@ Architecture · Étudiants haïtiens
 </div>
 
 <footer>
-  <p>Une discipline de <strong>Lakou Archi</strong>, dans le réseau Lakou Inivesite.</p>
+  <p class="footer-tagline" style="color:rgba(255,255,255,0.8);max-width:none">Une discipline de <strong style="color:#fff">Lakou Archi</strong>, dans le réseau Lakou Inivesite.</p>
 </footer>
 
 <script src="app.js"></script>
