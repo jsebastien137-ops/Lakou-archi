@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord — Lakou Archi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/dashboard/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="shell-slot"></div>
+
+<div class="page" id="page-dashboard">
+<div class="dash-wrap">
+
+  <div class="dash-card" id="dash-loading">
+    <p class="dash-sub">Chargement de ton espace…</p>
+  </div>
+
+  <div class="dash-card" id="dash-welcome" style="display:none">
+    <div class="dash-welcome-head">
+      <div>
+        <h1 class="dash-title" id="dash-title-bienvenue">Bonjour</h1>
+        <p class="dash-sub" id="dash-sub-role"></p>
+      </div>
+      <button class="dash-settings-btn" onclick="window.location.href='/settings/'" title="Paramètres" aria-label="Paramètres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M3.5 12 L6 12 M18 12 L20.5 12 M6.1 6.1 L7.8 7.8 M16.2 16.2 L17.9 17.9 M6.1 17.9 L7.8 16.2 M16.2 7.8 L17.9 6.1"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="dash-card" id="dash-ateliers" style="display:none">
+    <p class="dash-section-title">Mes ateliers</p>
+    <div class="dash-ateliers-grid" id="dash-ateliers-grid"></div>
+  </div>
+
+  <div class="dash-card" id="dash-projects" style="display:none">
+    <p class="dash-section-title">Mes projets</p>
+    <div id="dash-projects-list"><p class="dash-sub">Chargement…</p></div>
+  </div>
+
+  <div class="dash-card" id="dash-stats" style="display:none">
+    <p class="dash-section-title">Statistiques — visible uniquement par les admins</p>
+
+    <div class="dash-stats-live">
+      <span class="dash-stats-live-dot"></span>
+      <b id="dash-stats-inscrits">—</b> inscrit·e·s
+    </div>
+
+    <div class="dash-stats-grid">
+      <div class="dash-stats-mini draft"><span class="dash-stats-mini-num" id="dash-stat-draft">—</span><span class="dash-stats-mini-label">Brouillon</span></div>
+      <div class="dash-stats-mini pending"><span class="dash-stats-mini-num" id="dash-stat-pending">—</span><span class="dash-stats-mini-label">En attente</span></div>
+      <div class="dash-stats-mini approved"><span class="dash-stats-mini-num" id="dash-stat-approved">—</span><span class="dash-stats-mini-label">Validé</span></div>
+      <div class="dash-stats-mini rejected"><span class="dash-stats-mini-num" id="dash-stat-rejected">—</span><span class="dash-stats-mini-label">Rejeté</span></div>
+    </div>
+
+    <p class="dash-chart-title">Activité — 14 derniers jours</p>
+    <canvas id="dash-stats-chart" height="140"></canvas>
+
+    <button class="btn-primary" id="dash-btn-rapport" style="margin-top:1.2rem;width:100%">Envoyer un rapport</button>
+    <p class="dash-sub" id="dash-rapport-msg" style="margin-top:0.6rem"></p>
+  </div>
+
+  <div class="dash-card" id="dash-admin" style="display:none">
+    <p class="dash-section-title">Utilisateurs — visible uniquement par les admins</p>
+    <div id="dash-users-list"><p class="dash-sub">Chargement…</p></div>
+  </div>
+
+</div>
+</div>
+
+<!-- FAB : nouveau projet -->
+<div class="dash-fab-container hidden" id="dash-fab-container">
+  <button class="dash-fab-main" id="dash-fab-main" aria-expanded="false" onclick="ouvrirNouveauProjet()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+
+<!-- Modal nouveau projet -->
+<div class="dash-modal-overlay" id="dash-modal-overlay">
+  <div class="dash-modal-card">
+    <button class="dash-modal-close" id="dash-modal-close">&times;</button>
+    <h2>Nouveau projet</h2>
+    <p class="dash-sub" id="dash-modal-msg" style="margin-bottom:0.8rem"></p>
+    <label class="field-label">Titre</label>
+    <input class="field-input" id="dash-new-title" placeholder="Titre du projet" type="text"/>
+    <label class="field-label">Description <span style="font-size:0.7rem;color:var(--gris)">(optionnel)</span></label>
+    <textarea class="field-input" id="dash-new-desc" rows="3" style="resize:vertical;font-family:sans-serif"></textarea>
+    <button class="btn-primary" id="dash-new-submit" style="width:100%;margin-top:1rem" onclick="doCreateProjectSimple()">Créer le brouillon</button>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+<script src="/dashboard/app.js"></script>
+</body>
+</html>
