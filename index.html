@@ -34,7 +34,7 @@
 <path d="M55,138 L158,138" stroke="#e0b978" stroke-linecap="round" stroke-width="7"></path>
 <circle cx="55" cy="20" fill="#e0b978" r="7"></circle>
 </svg>
-  Lakou<span>.</span>Archi
+  Lakou<span>.</span>Achitekti
 </div>
 <button id="search-btn" onclick="toggleSearch()" style="background:none;border:none;cursor:pointer;padding:0.4rem;color:var(--terre);font-size:1.2rem">🔍</button>
 <button class="hamburger" id="hamburger-btn" onclick="toggleMenu()">
@@ -44,6 +44,8 @@
 <!-- MENU DRAWER -->
 <div id="menu-overlay" onclick="closeMenu()"></div>
 <div id="menu-drawer">
+
+<button class="menu-close-btn" onclick="closeMenu()" aria-label="Fermer le menu">✕</button>
 
 <div class="menu-section">Découvrir</div>
 <div class="menu-item" onclick="closeMenu();navigateTo('home')">Accueil <span>→</span></div>
@@ -82,9 +84,6 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M3.5 12 L6 12 M18 12 L20.5 12 M6.1 6.1 L7.8 7.8 M16.2 16.2 L17.9 17.9 M6.1 17.9 L7.8 16.2 M16.2 7.8 L17.9 6.1"/></svg>
   </button>
 </li>
-<div class="menu-item hidden" id="menu-stats" onclick="closeMenu();toast('Statistiques — bientôt disponible.')">
-  Statistiques <span>→</span>
-</div>
 <div class="menu-item hidden" id="menu-validate" onclick="closeMenu();navigateTo('validate')">Valider des projets <span>→</span></div>
 
 <div class="menu-section">Communauté</div>
@@ -120,7 +119,13 @@
 </div>
 <div class="page" id="page-home">
 
-<div style="text-align:center;padding-top:calc(64px + 1.2rem);padding-bottom:0.5rem;padding-left:1.5rem;padding-right:1.5rem;background:var(--creme)">
+<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:sans-serif;font-size:0.72rem;background:#211712;color:#f2e4c8;padding:76px 16px 7px;">
+  <a href="https://lakou-inivesite.vercel.app/" style="color:#f2e4c8;text-decoration:none;font-weight:700;">🏠 Lakou Inivesite</a>
+  <span style="opacity:0.4;">›</span>
+  <span style="opacity:0.6;">Lakou Achitekti</span>
+</div>
+
+<div style="text-align:center;padding-top:1.2rem;padding-bottom:0.5rem;padding-left:1.5rem;padding-right:1.5rem;background:var(--creme)">
 <p style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;color:var(--terre);letter-spacing:0.03em;margin:0">
     L'architecture haïtienne a une histoire. <em>Toi, tu en écris la suite.</em>
 </p>
@@ -194,7 +199,7 @@
 Architecture · Étudiants haïtiens
 </p>
 <h1 class="hero-title">Ce que tu construis<br/>ne doit pas <em>disparaître</em></h1>
-<p class="hero-subtitle">Après la remise des notes, la plupart des projets d'architecture sont oubliés. Lakou Archi les archive, les valide, et les rend visibles — pour toi, et pour ceux qui viendront après.</p>
+<p class="hero-subtitle">Après la remise des notes, la plupart des projets d'architecture sont oubliés. Lakou Achitekti les archive, les valide, et les rend visibles — pour toi, et pour ceux qui viendront après.</p>
 <div class="hero-pillars">
 <div class="hero-pillar">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4.2"/><path d="M8.5 11.5 L6.5 20 L12 17 L17.5 20 L15.5 11.5"/></svg>
@@ -333,6 +338,11 @@ Architecture · Étudiants haïtiens
 </section>
 
 </div>
+  <footer>
+<p>Une discipline de <strong>Lakou Archi</strong>, dans le réseau Lakou Inivesite.</p>
+</footer>
+
+
 <script src="app.js"></script>
 </body>
 </html>
