@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revue — Administration</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/revue/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='./'" style="display:flex">← Revue</button>
+  <div class="nav-logo" style="font-size:1.05rem">Administration</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div class="revue-admin-page">
+  <div class="revue-admin-body">
+
+    <p id="admin-guard-msg" style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Vérification des droits...</p>
+
+    <div id="admin-form-wrap" class="hidden">
+      <div class="form-eyebrow" id="admin-form-eyebrow">Nouvelle publication</div>
+      <h1 class="form-title" id="admin-form-title">Rédiger</h1>
+
+      <div class="form-section">
+        <div class="form-group">
+          <label class="field-label">Titre</label>
+          <input type="text" id="f-title" class="field-input" placeholder="Titre de la publication">
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">Catégorie</label>
+          <select id="f-category" class="field-input"></select>
+          <div class="revue-new-cat-row">
+            <input type="text" id="f-new-cat" class="field-input" placeholder="Ou crée une nouvelle catégorie...">
+            <button class="form-btn-cancel" onclick="createRevueCategory()">Ajouter</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">Résumé</label>
+          <textarea id="f-summary" class="field-input" rows="2" placeholder="Une ou deux phrases pour la carte de la liste"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">Article (Markdown)</label>
+          <textarea id="f-body" class="field-input" rows="10" placeholder="## Titre&#10;&#10;Ton texte ici...&#10;&#10;- liste&#10;- **gras**, *italique*&#10;- [lien](https://...)" style="font-family:monospace;font-size:0.82rem"></textarea>
+          <p class="revue-md-help">Markdown : ## titre, **gras**, *italique*, - liste, [texte](lien), ![alt](url image)</p>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">Statut</label>
+          <select id="f-status" class="field-input">
+            <option value="draft">Brouillon</option>
+            <option value="published">Publié</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Image de couverture</div>
+        <input type="file" id="f-cover" class="field-input" accept="image/*" onchange="previewImageFile(this,'cover-preview')">
+        <img id="cover-preview" class="revue-file-preview" alt="">
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Vidéo locale (optionnelle, 150s max)</div>
+        <input type="file" id="f-video" class="field-input" accept="video/*" onchange="onRevueVideoSelected(this)">
+        <p class="revue-md-help" id="video-status-msg"></p>
+        <video id="video-preview" class="revue-file-preview" style="max-height:220px" controls></video>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Galerie d'images (optionnelle)</div>
+        <input type="file" id="f-gallery" class="field-input" accept="image/*" multiple onchange="previewGalleryFiles(this)">
+        <div class="revue-gallery-preview" id="gallery-preview"></div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Liens externes</div>
+        <div class="form-group">
+          <label class="field-label">Lien YouTube</label>
+          <input type="url" id="f-youtube" class="field-input" placeholder="https://youtube.com/watch?v=...">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Lien TikTok</label>
+          <input type="url" id="f-tiktok" class="field-input" placeholder="https://tiktok.com/@.../video/...">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="form-btn-cancel" onclick="window.location.href='./'">Annuler</button>
+        <button class="form-btn" id="save-btn" onclick="saveRevuePost()">Enregistrer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="admin.js"></script>
+</body>
+</html>
