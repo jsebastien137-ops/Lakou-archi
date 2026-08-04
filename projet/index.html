@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projet — Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/projet/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='/projets/'" style="display:flex">← Projets</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div style="padding-top:64px;background:var(--creme);min-height:100vh">
+
+  <p id="pd-loading" style="text-align:center;padding:3rem 1.5rem;color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>
+
+  <div id="pd-root" class="hidden">
+
+    <div class="pd-cover hidden" id="pd-cover-wrap">
+      <img id="pd-cover-img" alt="">
+      <span class="pd-status-badge" id="pd-status"></span>
+    </div>
+
+    <div class="pd-header">
+      <h1 class="pd-title" id="pd-title"></h1>
+      <div class="pd-meta" id="pd-meta"></div>
+
+      <div class="pd-author" id="pd-author"></div>
+
+      <p class="pd-desc" id="pd-desc"></p>
+
+      <div class="pd-actions">
+        <button class="pd-like-btn" id="pd-like-btn" onclick="toggleLike()">
+          <span id="pd-like-icon">♡</span> <span id="pd-like-count">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pd-section hidden" id="pd-timeline-section">
+      <h2 class="pd-section-title">Évolution du projet</h2>
+      <div id="pd-timeline"></div>
+    </div>
+
+    <div class="pd-section hidden" id="pd-dossier-section">
+      <h2 class="pd-section-title">Dossier technique</h2>
+      <div id="pd-dossier"></div>
+    </div>
+
+    <div class="pd-section" id="pd-comments-section">
+      <h2 class="pd-section-title">Commentaires</h2>
+
+      <div id="pd-comment-form" class="hidden">
+        <textarea id="pd-comment-input" class="field-input" rows="2" placeholder="Écris un commentaire..."></textarea>
+        <button class="form-btn" style="margin-top:0.6rem" onclick="postComment()">Publier</button>
+      </div>
+      <p id="pd-comment-login-msg" class="hidden pd-login-msg">
+        <a href="/?login=1">Connecte-toi</a> pour commenter.
+      </p>
+
+      <div id="pd-comments-list" style="margin-top:1.2rem"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
