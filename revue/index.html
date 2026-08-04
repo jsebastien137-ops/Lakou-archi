@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revue de Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/revue/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- NAV minimale -->
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='/'" style="display:flex">← Retour</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div style="padding-top:64px;background:var(--creme);min-height:100vh">
+
+  <!-- BANNIÈRE — remplace l'image ci-dessous pour personnaliser -->
+  <div class="revue-banner" style="background-image:url('https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/project-images/maison-reference-fullhd.png')">
+    <div class="revue-banner-inner">
+      <p class="revue-banner-tag">Espace éditorial</p>
+      <h1 class="revue-banner-title">Revue de Lakou Achitekti</h1>
+      <p class="revue-banner-subtitle">Bâtiments, regards, pédagogie — une bibliothèque de contenus qui reste consultable dans le temps.</p>
+    </div>
+  </div>
+
+  <!-- RECHERCHE + FILTRES -->
+  <div class="revue-toolbar">
+    <input type="text" id="revue-search" class="revue-search" placeholder="Rechercher un titre..." oninput="onRevueSearchInput()">
+    <div class="revue-categories" id="revue-categories">
+      <button class="revue-cat-pill active" data-slug="" onclick="setRevueCategory('', this)">Tout</button>
+    </div>
+    <div id="revue-admin-bar" class="hidden" style="margin-bottom:1.2rem">
+      <button class="form-btn" onclick="window.location.href='/revue/admin.html'">+ Nouvelle publication</button>
+    </div>
+  </div>
+
+  <!-- GRILLE -->
+  <div class="revue-body">
+    <div id="revue-grid" class="revue-grid">
+      <p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>
+    </div>
+    <div class="revue-load-more hidden" id="revue-load-more-wrap">
+      <button class="form-btn-cancel" id="revue-load-more-btn" onclick="loadRevuePosts(false)">Charger plus</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
