@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revue de Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/revue/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='./'" style="display:flex">← Revue</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div style="padding-top:64px;background:var(--creme);min-height:100vh" id="revue-article-root">
+
+  <div class="revue-article-header">
+    <p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem" id="revue-article-loading">Chargement...</p>
+    <span class="revue-article-cat hidden" id="article-cat"></span>
+    <h1 class="revue-article-title hidden" id="article-title"></h1>
+    <div class="revue-article-meta hidden" id="article-meta"></div>
+  </div>
+
+  <div class="revue-article-cover hidden" id="article-cover-wrap">
+    <img id="article-cover-img" alt="">
+  </div>
+
+  <div class="revue-article-body">
+    <div class="revue-video-wrap hidden" id="article-video-wrap">
+      <video id="article-video" controls preload="metadata"></video>
+    </div>
+
+    <div class="revue-social-links hidden" id="article-social-links"></div>
+
+    <div class="revue-prose" id="article-body"></div>
+
+    <div class="revue-gallery hidden" id="article-gallery"></div>
+  </div>
+
+  <div class="revue-article-actions hidden" id="article-admin-actions">
+    <button class="form-btn-cancel" onclick="editArticle()">Modifier</button>
+    <button class="form-btn-cancel" style="color:#b91c1c;border-color:#b91c1c" onclick="deleteArticle()">Supprimer</button>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="article.js"></script>
+</body>
+</html>
