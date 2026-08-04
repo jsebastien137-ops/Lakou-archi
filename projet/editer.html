@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modifier le projet — Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/projet/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" id="back-btn" onclick="window.location.href='/dashboard/'" style="display:flex">← Retour</button>
+  <div class="nav-logo" style="font-size:1.05rem">Modifier</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div class="pd-edit-page">
+  <div class="pd-edit-body">
+
+    <p id="guard-msg" style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Vérification...</p>
+
+    <div id="edit-root" class="hidden">
+
+      <div class="form-eyebrow">Mon projet</div>
+      <h1 class="form-title" id="edit-title-display">Modifier le projet</h1>
+
+      <div id="status-card" class="form-section"></div>
+
+      <div class="form-section">
+        <div class="form-section-title">Informations</div>
+        <div class="form-group">
+          <label class="field-label">Titre</label>
+          <input type="text" id="f-title" class="field-input">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Description</label>
+          <textarea id="f-desc" class="field-input" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="field-label">Classe</label>
+            <select id="f-level" class="field-input">
+              <option value="">—</option>
+              <option value="L1">L1</option>
+              <option value="L2">L2</option>
+              <option value="L3">L3</option>
+              <option value="L4">L4</option>
+              <option value="L5">L5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Année académique</label>
+            <input type="text" id="f-year" class="field-input" placeholder="Ex. 2026">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="field-label">Catégorie</label>
+            <select id="f-program" class="field-input">
+              <option value="">—</option>
+              <option value="ecole">École</option>
+              <option value="residentiel">Résidentiel</option>
+              <option value="industrie">Industrie</option>
+              <option value="sante">Santé</option>
+              <option value="culturel">Culturel / Public</option>
+              <option value="commercial">Commercial</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Superficie (m²)</label>
+            <input type="number" id="f-area" class="field-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Lieu</label>
+          <input type="text" id="f-location" class="field-input">
+        </div>
+        <div class="form-actions">
+          <button class="form-btn" id="save-info-btn" style="width:100%" onclick="saveProjectInfo()">Enregistrer</button>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Image de couverture</div>
+        <input type="file" id="f-cover" class="field-input" accept="image/*" onchange="uploadCover(this)">
+        <img id="cover-preview" class="pd-file-preview" alt="">
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Évolution du projet</div>
+        <div id="stage-list"></div>
+        <hr style="border:none;border-top:1px solid var(--gris-light);margin:1.2rem 0">
+        <div class="form-group">
+          <label class="field-label">Type d'étape</label>
+          <select id="stage-type" class="field-input">
+            <option value="sketches">Carnets de croquis</option>
+            <option value="conceptual">Maquettes conceptuelles</option>
+            <option value="plans">Plans en cours</option>
+            <option value="final">Maquettes finales</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Titre de l'étape</label>
+          <input type="text" id="stage-title" class="field-input" placeholder="Ex. Premiers croquis">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Description</label>
+          <textarea id="stage-desc" class="field-input" rows="2"></textarea>
+        </div>
+        <button class="form-btn-cancel" onclick="addStage()">+ Ajouter cette étape</button>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Dossier technique</div>
+        <div id="td-editor"></div>
+      </div>
+
+      <div class="form-actions">
+        <button class="form-btn-cancel" onclick="window.location.href='/projet/?id='+currentProjectId">Voir la fiche</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="editer.js"></script>
+</body>
+</html>
