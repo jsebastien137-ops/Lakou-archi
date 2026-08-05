@@ -25,6 +25,10 @@
     <div id="admin-form-wrap" class="hidden">
       <div class="form-eyebrow" id="admin-form-eyebrow">Nouvelle publication</div>
       <h1 class="form-title" id="admin-form-title">Rédiger</h1>
+      <p style="font-family:sans-serif;font-size:0.85rem;color:var(--gris);margin:-0.3rem 0 1.2rem;line-height:1.5">
+        Remplis les champs ci-dessous. Seul le titre est obligatoire — le reste peut être complété plus tard,
+        tant que le statut reste sur « Brouillon ».
+      </p>
 
       <div class="form-section">
         <div class="form-group">
@@ -42,27 +46,42 @@
         </div>
 
         <div class="form-group">
-          <label class="field-label">Résumé</label>
-          <textarea id="f-summary" class="field-input" rows="2" placeholder="Une ou deux phrases pour la carte de la liste"></textarea>
+          <label class="field-label">Résumé — affiché sur la carte, dans la liste des articles</label>
+          <textarea id="f-summary" class="field-input" rows="2" placeholder="Une ou deux phrases qui donnent envie de lire l'article"></textarea>
         </div>
 
         <div class="form-group">
-          <label class="field-label">Article (Markdown)</label>
-          <textarea id="f-body" class="field-input" rows="10" placeholder="## Titre&#10;&#10;Ton texte ici...&#10;&#10;- liste&#10;- **gras**, *italique*&#10;- [lien](https://...)" style="font-family:monospace;font-size:0.82rem"></textarea>
-          <p class="revue-md-help">Markdown : ## titre, **gras**, *italique*, - liste, [texte](lien), ![alt](url image)</p>
+          <label class="field-label">Article — le texte complet de la publication</label>
+
+          <div style="background:var(--creme);border:1px solid var(--gris-light);border-radius:0.6rem;padding:0.8rem 1rem;margin-bottom:0.6rem;font-family:sans-serif;font-size:0.8rem;color:var(--gris-dark,#4a3d33);line-height:1.6">
+            <p style="margin:0 0 0.4rem;font-weight:600">Comment mettre le texte en forme ?</p>
+            <p style="margin:0 0 0.3rem">Tape ces symboles autour du texte — ils ne s'affichent pas, ils servent juste à indiquer la mise en forme :</p>
+            <ul style="margin:0;padding-left:1.1rem;list-style:disc">
+              <li><b>Gras</b> : entoure le mot de deux étoiles → <code>**bâtiment**</code> devient <b>bâtiment</b></li>
+              <li><i>Italique</i> : entoure le mot d'une étoile → <code>*Lekòl*</code> devient <i>Lekòl</i></li>
+              <li>Titre de section : mets <code>##</code> puis un espace au début de la ligne → <code>## Le projet</code></li>
+              <li>Liste à puces : mets un tiret puis un espace au début de chaque ligne → <code>- premier point</code></li>
+              <li>Lien cliquable : <code>[texte affiché](https://adresse-du-lien.com)</code></li>
+              <li>Image dans le texte : <code>![description](https://adresse-de-l-image.com)</code></li>
+            </ul>
+            <p style="margin:0.4rem 0 0;font-style:italic">Astuce : laisse une ligne vide entre deux paragraphes pour bien les séparer.</p>
+          </div>
+
+          <textarea id="f-body" class="field-input" rows="10" placeholder="## Le projet&#10;&#10;Écris ton texte ici normalement, comme dans un message.&#10;&#10;- Utilise des tirets pour faire une liste&#10;- Entoure un mot de **deux étoiles** pour le mettre en gras" style="font-family:monospace;font-size:0.82rem"></textarea>
         </div>
+
 
         <div class="form-group">
           <label class="field-label">Statut</label>
           <select id="f-status" class="field-input">
-            <option value="draft">Brouillon</option>
-            <option value="published">Publié</option>
+            <option value="draft">Brouillon — invisible pour les visiteurs, tu peux continuer à le modifier</option>
+            <option value="published">Publié — visible immédiatement sur la page Revue</option>
           </select>
         </div>
       </div>
 
       <div class="form-section">
-        <div class="form-section-title">Image de couverture</div>
+        <div class="form-section-title">Image de couverture — celle qu'on voit sur la carte et en haut de l'article</div>
         <input type="file" id="f-cover" class="field-input" accept="image/*" onchange="previewImageFile(this,'cover-preview')">
         <img id="cover-preview" class="revue-file-preview" alt="">
       </div>
@@ -75,7 +94,7 @@
       </div>
 
       <div class="form-section">
-        <div class="form-section-title">Galerie d'images (optionnelle)</div>
+        <div class="form-section-title">Galerie d'images (optionnelle) — photos supplémentaires affichées dans le corps de l'article</div>
         <input type="file" id="f-gallery" class="field-input" accept="image/*" multiple onchange="previewGalleryFiles(this)">
         <div class="revue-gallery-preview" id="gallery-preview"></div>
       </div>
