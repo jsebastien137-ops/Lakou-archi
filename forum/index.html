@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forum — Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/forum/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='/'" style="display:flex">← Retour</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div class="forum-wrap">
+
+  <div class="forum-head">
+    <span class="forum-kicker">Communauté</span>
+    <h1 class="forum-title">Forum</h1>
+  </div>
+
+  <div id="forum-guard-msg" class="forum-loading">Vérification des accès…</div>
+
+  <div id="forum-content" class="hidden">
+
+    <div class="forum-toolbar">
+      <div class="forum-categories" id="forum-categories">
+        <button class="forum-cat-pill active" data-cat="" onclick="setForumCategory('', this)">Tout</button>
+        <button class="forum-cat-pill" data-cat="questions" onclick="setForumCategory('questions', this)">Questions</button>
+        <button class="forum-cat-pill" data-cat="projets" onclick="setForumCategory('projets', this)">Projets</button>
+        <button class="forum-cat-pill" data-cat="ressources" onclick="setForumCategory('ressources', this)">Ressources</button>
+        <button class="forum-cat-pill" data-cat="entraide" onclick="setForumCategory('entraide', this)">Entraide</button>
+        <button class="forum-cat-pill" data-cat="annonces" onclick="setForumCategory('annonces', this)">Annonces</button>
+      </div>
+      <button class="form-btn" onclick="ouvrirNouveauSujet()">+ Nouveau sujet</button>
+    </div>
+
+    <div id="forum-topics-list" class="forum-topics-list">
+      <p class="forum-loading">Chargement…</p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal nouveau sujet -->
+<div class="forum-modal-overlay" id="forum-modal-overlay">
+  <div class="forum-modal-card">
+    <button class="forum-modal-close" id="forum-modal-close">&times;</button>
+    <h2>Nouveau sujet</h2>
+    <p class="forum-sub" id="forum-modal-msg" style="margin-bottom:0.8rem"></p>
+
+    <label class="field-label">Titre</label>
+    <input class="field-input" id="forum-new-title" placeholder="Titre du sujet" type="text">
+
+    <label class="field-label">Catégorie</label>
+    <select class="field-input" id="forum-new-category">
+      <option value="questions">Questions</option>
+      <option value="projets">Projets</option>
+      <option value="ressources">Ressources</option>
+      <option value="entraide">Entraide</option>
+      <option value="annonces">Annonces</option>
+    </select>
+
+    <label class="field-label">Message</label>
+    <textarea class="field-input" id="forum-new-content" rows="5" style="resize:vertical;font-family:sans-serif" placeholder="Décris ta question ou ton sujet en détail…"></textarea>
+
+    <button class="btn-primary" id="forum-new-submit" style="width:100%;margin-top:1rem" onclick="doCreateTopic()">Publier</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="/forum/app.js"></script>
+</body>
+</html>
