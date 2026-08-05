@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valider des projets — Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/validate/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="shell-slot"></div>
+
+<div class="page" id="page-validate">
+  <div class="validate-wrap">
+
+    <div class="validate-head">
+      <h1 class="validate-title">Valider des projets</h1>
+      <p class="validate-sub" id="validate-sub">Vérification des accès…</p>
+    </div>
+
+    <div id="validate-denied" class="empty-state hidden">
+      <p>Cette section est réservée aux enseignant·e·s et administrateur·rice·s.</p>
+    </div>
+
+    <div id="validate-list">
+      <div class="empty-state" id="validate-loading"><p>Chargement…</p></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/app.js"></script>
+<script src="/validate/app.js"></script>
+</body>
+</html>
