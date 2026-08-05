@@ -1,0 +1,22 @@
+<style>
+.validate-wrap{
+  max-width:760px;
+  margin:0 auto;
+  padding:88px 1.2rem 3rem;
+}
+.validate-head{
+  margin-bottom:1.5rem;
+}
+.validate-title{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:400;
+  font-size:clamp(1.6rem,5vw,2.1rem);
+  color:var(--terre);
+  margin-bottom:0.3rem;
+}
+.validate-sub{
+  font-family:sans-serif;
+  font-size:0.85rem;
+  color:var(--gris);
+}
+</style>
