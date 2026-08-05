@@ -20,14 +20,49 @@
 
 <div style="padding-top:64px;background:var(--creme);min-height:100vh">
 
-  <!-- BANNIÈRE — remplace l'image ci-dessous pour personnaliser -->
-  <div class="revue-banner" style="background-image:url('https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/project-images/maison-reference-fullhd.png')">
-    <div class="revue-banner-inner">
-      <p class="revue-banner-tag">Espace éditorial</p>
-      <h1 class="revue-banner-title">Revue de Lakou Achitekti</h1>
-      <p class="revue-banner-subtitle">Bâtiments, regards, pédagogie — une bibliothèque de contenus qui reste consultable dans le temps.</p>
+  <!-- BANNIÈRE — collage animé (images tirées du bucket revue-covers) -->
+  <section class="collage-section">
+    <div class="stage" id="stage">
+
+      <div class="piece" style="--x:22%;--y:30%;--w:46%;--r:-4deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/boniface.jpeg" alt="Portrait — Boniface" />
+      </div>
+      <div class="piece" style="--x:55%;--y:22%;--w:38%;--r:3deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/images%20(3).jpeg" alt="Photographie — Revue de Lakou Achitekti" />
+      </div>
+      <div class="piece" style="--x:78%;--y:38%;--w:34%;--r:-5deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/images%20(4).jpeg" alt="Photographie — Revue de Lakou Achitekti" />
+      </div>
+      <div class="piece" style="--x:15%;--y:62%;--w:40%;--r:5deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/images%20(5).jpeg" alt="Photographie — Revue de Lakou Achitekti" />
+      </div>
+      <div class="piece" style="--x:42%;--y:55%;--w:50%;--r:-2.5deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/88e679c8cddb7530e6cbcb07eb147c8f.jpg" alt="Photographie — Revue de Lakou Achitekti" />
+      </div>
+      <div class="piece" style="--x:68%;--y:65%;--w:36%;--r:4.5deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/georges).jpeg" alt="Portrait — Georges" />
+      </div>
+      <div class="piece" style="--x:85%;--y:75%;--w:30%;--r:-3deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/images%20(7).jpeg" alt="Photographie — Revue de Lakou Achitekti" />
+      </div>
+      <div class="piece" style="--x:32%;--y:80%;--w:34%;--r:6deg">
+        <img src="https://qptnjgdfobznwmsguvyf.supabase.co/storage/v1/object/public/revue-covers/images%20(6).jpeg" alt="Photographie — Revue de Lakou Achitekti" />
+      </div>
+
+      <div class="voile"></div>
+
+      <div class="infos">
+        <span class="kicker">Espace éditorial — La Revue</span>
+        <span class="item i1">Bâtiment de la semaine</span>
+        <span class="item i2">Kisa ou wè</span>
+        <span class="item i3">Lekòl Achitekti</span>
+        <span class="item i4">Articles</span>
+        <span class="rule"></span>
+        <span class="credit">Une initiative de May-Hélène FÉLIX</span>
+      </div>
+
     </div>
-  </div>
+  </section>
 
   <!-- RECHERCHE + FILTRES -->
   <div class="revue-toolbar">
@@ -53,6 +88,45 @@
 </div>
 
 <div id="toast"></div>
+
+<script>
+(function(){
+  var stage  = document.getElementById('stage');
+  var pieces = stage.querySelectorAll('.piece');
+  var timers = [];
+  var PAS = 1150;    // délai entre chaque découpage qui apparaît
+  var FLOU = 1600;   // pause après la dernière image avant le flou (marge large)
+  var LECTURE = 5000; // temps de lecture des infos — ~5 secondes
+
+  function clear(){ timers.forEach(clearTimeout); timers = []; }
+  function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+
+  function jouer(){
+    clear();
+    stage.classList.remove('flou','texte');
+    pieces.forEach(function(p){ p.classList.remove('in'); });
+
+    at(300, function(){
+      pieces.forEach(function(p,i){ at(i*PAS, function(){ p.classList.add('in'); }); });
+    });
+
+    var finReveal = 300 + (pieces.length - 1) * PAS + 1500;
+    var finFlouStart = finReveal + FLOU;
+    at(finFlouStart, function(){ stage.classList.add('flou'); });
+    at(finFlouStart + 450, function(){ stage.classList.add('texte'); });
+    at(finFlouStart + 450 + LECTURE, function(){
+      stage.classList.remove('texte');
+      at(900, function(){ stage.classList.remove('flou'); });
+      at(1800, jouer);
+    });
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ jouer(); io.disconnect(); } });
+  },{threshold:.35});
+  io.observe(stage);
+})();
+</script>
 
 <script src="app.js"></script>
 </body>
