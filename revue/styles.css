@@ -1,0 +1,203 @@
+/* ============================================================
+   REVUE — styles propres au module, préfixés "revue-".
+   Réutilise les variables globales (--terre, --ocre, --creme,
+   --gris, --gris-light) et les classes .field-input/.form-btn/
+   .form-group déjà définies dans /styles.css.
+   Aucune classe ici ne dépend d'un site en particulier.
+   ============================================================ */
+
+/* BANNIÈRE — collage animé (images du bucket revue-covers) */
+:root{
+  --papier:#faf6ef;
+  --encre:#2b1a10;
+  --or:#e3b568;
+}
+.collage-section{padding:0}
+.stage{
+  position:relative;width:100%;max-width:1200px;margin:0 auto;
+  aspect-ratio:4/5;overflow:hidden;background:var(--papier);
+  border-radius:2px;
+}
+@media(min-width:768px){ .stage{aspect-ratio:16/10} }
+.stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:5;
+  background-image:radial-gradient(rgba(120,84,50,.16) 1px,transparent 1px);
+  background-size:3px 3px;mix-blend-mode:multiply;opacity:.5;
+}
+.piece{
+  position:absolute;
+  left:var(--x);top:var(--y);width:var(--w);
+  transform:translate(-50%,-50%) rotate(var(--r)) scale(.9);
+  opacity:0;
+  filter:blur(0) sepia(.18) contrast(1.03);
+  transition:
+    opacity 1.15s cubic-bezier(.4,0,.2,1),
+    transform 1.5s cubic-bezier(.19,1,.22,1),
+    filter 1.4s ease;
+  box-shadow:0 18px 40px -18px rgba(43,26,16,.55), 0 2px 0 rgba(255,255,255,.6);
+  background:#fff;padding:6px;
+}
+.piece img{display:block;width:100%;height:auto}
+.piece.in{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) scale(1)}
+.stage.flou .piece{filter:blur(11px) sepia(.3) contrast(.95) brightness(.82);transform:translate(-50%,-50%) rotate(var(--r)) scale(1.04)}
+.voile{
+  position:absolute;inset:0;z-index:3;opacity:0;
+  background:linear-gradient(180deg,rgba(43,26,16,.35),rgba(43,26,16,.62));
+  transition:opacity 1.2s ease;
+}
+.stage.flou .voile{opacity:1}
+.infos{
+  position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;gap:.9rem;padding:8%;
+  text-align:center;pointer-events:none;
+}
+.infos .kicker{
+  font-size:clamp(.62rem,1.4vw,.8rem);letter-spacing:.42em;text-transform:uppercase;
+  color:var(--or);opacity:0;transform:translateY(14px);
+  transition:opacity .9s ease .05s,transform 1s cubic-bezier(.19,1,.22,1) .05s;
+}
+.infos .item{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(1.5rem,5.2vw,3rem);line-height:1.12;color:#fdf8f1;
+  opacity:0;transform:translateY(20px);
+  transition:opacity .9s ease,transform 1.1s cubic-bezier(.19,1,.22,1);
+}
+.infos .rule{width:54px;height:1px;background:var(--or);opacity:0;transition:opacity .8s ease .95s}
+.infos .credit{
+  font-family:Georgia,"Times New Roman",serif;font-style:italic;
+  font-size:clamp(.95rem,2.4vw,1.25rem);color:#f3e6d2;letter-spacing:.02em;
+  opacity:0;transform:translateY(14px);
+  transition:opacity .9s ease 1.1s,transform 1s cubic-bezier(.19,1,.22,1) 1.1s;
+}
+.stage.texte .item.i1{transition-delay:.15s}
+.stage.texte .item.i2{transition-delay:.35s}
+.stage.texte .item.i3{transition-delay:.55s}
+.stage.texte .item.i4{transition-delay:.75s}
+.stage.texte .kicker,.stage.texte .rule{opacity:1;transform:none}
+.stage.texte .item{opacity:1;transform:none}
+.stage.texte .credit{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .piece,.voile,.infos *{transition-duration:.01ms !important}
+}
+
+/* BARRE RECHERCHE + FILTRES */
+.revue-toolbar{max-width:900px;margin:0 auto;padding:1.5rem 1.5rem 0}
+.revue-search{
+  width:100%;padding:0.7rem 1rem;border:1.5px solid var(--gris-light);
+  border-radius:2rem;font-size:0.85rem;font-family:sans-serif;
+  background:#fff;color:#1a1a1a;margin-bottom:1rem;
+}
+.revue-search:focus{outline:none;border-color:var(--ocre)}
+.revue-categories{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.revue-cat-pill{
+  font-size:0.72rem;padding:0.45rem 0.95rem;border-radius:2rem;
+  border:1.5px solid var(--gris-light);background:transparent;color:var(--gris);
+  cursor:pointer;transition:all 0.2s;font-family:sans-serif;
+}
+.revue-cat-pill:hover,.revue-cat-pill.active{
+  background:var(--terre);color:#fff;border-color:var(--terre);
+}
+
+/* GRILLE DE CARTES */
+.revue-body{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+.revue-grid{display:grid;grid-template-columns:1fr;gap:1.3rem}
+@media(min-width:640px){.revue-grid{grid-template-columns:1fr 1fr}}
+
+.revue-card{
+  background:#fff;border:1px solid rgba(160,120,70,0.15);border-radius:0.5rem;
+  overflow:hidden;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;
+  display:flex;flex-direction:column;
+}
+.revue-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(59,31,10,0.1)}
+.revue-card-img{position:relative;width:100%;aspect-ratio:16/9;background:var(--gris-light);overflow:hidden}
+.revue-card-img img{width:100%;height:100%;object-fit:cover}
+.revue-card-duration{
+  position:absolute;bottom:0.5rem;right:0.5rem;
+  background:rgba(0,0,0,0.7);color:#fff;font-size:0.68rem;
+  padding:0.15rem 0.5rem;border-radius:0.25rem;font-family:sans-serif;
+}
+.revue-card-cat{
+  position:absolute;top:0.6rem;left:0.6rem;
+  background:rgba(255,255,255,0.92);color:var(--terre);
+  font-size:0.62rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  padding:0.25rem 0.6rem;border-radius:2rem;font-family:sans-serif;
+}
+.revue-card-body{padding:1rem 1.1rem 1.1rem;display:flex;flex-direction:column;gap:0.4rem;flex:1}
+.revue-card-title{
+  font-family:"Cormorant Garamond",serif;font-size:1.2rem;font-weight:600;
+  color:var(--terre);line-height:1.25;
+}
+.revue-card-summary{font-size:0.8rem;color:var(--gris);line-height:1.5;flex:1}
+.revue-card-meta{
+  display:flex;align-items:center;gap:0.5rem;font-size:0.7rem;color:var(--gris);
+  font-family:sans-serif;padding-top:0.4rem;border-top:1px solid var(--gris-light);
+}
+.revue-card-meta .dot{opacity:0.5}
+
+/* PAGINATION / CHARGER PLUS */
+.revue-load-more{display:flex;justify-content:center;margin-top:2rem}
+
+/* ============================================================
+   ARTICLE (page de détail)
+   ============================================================ */
+.revue-article-header{max-width:720px;margin:0 auto;padding:2rem 1.5rem 0}
+.revue-article-cat{
+  display:inline-block;font-size:0.68rem;font-weight:600;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--ocre);font-family:sans-serif;margin-bottom:0.6rem;
+}
+.revue-article-title{
+  font-family:"Cormorant Garamond",serif;font-weight:300;
+  font-size:1.9rem;color:var(--terre);line-height:1.2;margin-bottom:0.7rem;
+}
+.revue-article-meta{
+  display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;
+  font-size:0.78rem;color:var(--gris);font-family:sans-serif;margin-bottom:1.5rem;
+}
+.revue-article-cover{width:100%;border-radius:0.5rem;overflow:hidden;margin-bottom:1.5rem}
+.revue-article-cover img{width:100%;display:block}
+
+.revue-article-body{max-width:720px;margin:0 auto;padding:0 1.5rem}
+.revue-prose{font-size:0.95rem;line-height:1.8;color:#2a2016;font-family:"Inter",sans-serif}
+.revue-prose h2{font-family:"Cormorant Garamond",serif;font-size:1.4rem;color:var(--terre);margin:1.8rem 0 0.6rem}
+.revue-prose h3{font-family:"Cormorant Garamond",serif;font-size:1.15rem;color:var(--terre);margin:1.4rem 0 0.5rem}
+.revue-prose p{margin-bottom:1rem}
+.revue-prose a{color:var(--ocre)}
+.revue-prose ul,.revue-prose ol{margin:0 0 1rem 1.3rem}
+.revue-prose img{max-width:100%;border-radius:0.4rem;margin:1rem 0}
+.revue-prose blockquote{
+  border-left:3px solid var(--ocre);padding-left:1rem;margin:1rem 0;
+  color:var(--gris);font-style:italic;
+}
+
+.revue-video-wrap{margin:1.5rem 0}
+.revue-video-wrap video{width:100%;border-radius:0.5rem;background:#000}
+
+.revue-gallery{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin:1.5rem 0}
+.revue-gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:0.4rem;cursor:pointer}
+
+.revue-social-links{display:flex;gap:0.8rem;margin:1.5rem 0}
+.revue-social-link{
+  display:flex;align-items:center;gap:0.4rem;padding:0.5rem 0.9rem;
+  border-radius:2rem;border:1.5px solid var(--gris-light);
+  font-size:0.78rem;color:var(--terre);text-decoration:none;font-family:sans-serif;
+  transition:all 0.2s;
+}
+.revue-social-link:hover{background:var(--terre);color:#fff;border-color:var(--terre)}
+.revue-social-link svg{width:16px;height:16px}
+
+.revue-article-actions{
+  max-width:720px;margin:2rem auto 0;padding:1.2rem 1.5rem;
+  border-top:1px solid var(--gris-light);display:flex;gap:0.8rem;
+}
+
+/* ============================================================
+   ADMIN — création / édition
+   ============================================================ */
+.revue-admin-page{padding-top:64px;min-height:100vh;background:var(--creme)}
+.revue-admin-body{max-width:640px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.revue-md-help{font-size:0.68rem;color:var(--gris);font-family:sans-serif;margin-top:0.3rem;line-height:1.5}
+.revue-file-preview{width:100%;max-height:180px;object-fit:cover;border-radius:0.4rem;margin-top:0.6rem;display:none}
+.revue-gallery-preview{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.6rem}
+.revue-gallery-preview img{width:64px;height:64px;object-fit:cover;border-radius:0.3rem}
+.revue-new-cat-row{display:flex;gap:0.5rem;margin-top:0.5rem}
+.revue-new-cat-row input{flex:1}
