@@ -20,15 +20,19 @@
     <p class="dash-sub">Chargement de ton espace…</p>
   </div>
 
+  <div id="dash-settings-toolbar" style="display:none;text-align:right;margin-bottom:0.7rem">
+    <button onclick="window.location.href='/settings/'" style="display:inline-flex;align-items:center;gap:0.4rem;background:var(--terre);color:#fff;border:none;border-radius:0.6rem;padding:0.6rem 1.1rem;font-family:sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M3.5 12 L6 12 M18 12 L20.5 12 M6.1 6.1 L7.8 7.8 M16.2 16.2 L17.9 17.9 M6.1 17.9 L7.8 16.2 M16.2 7.8 L17.9 6.1"/></svg>
+      Paramètres
+    </button>
+  </div>
+
   <div class="dash-card" id="dash-welcome" style="display:none">
     <div class="dash-welcome-head">
       <div>
         <h1 class="dash-title" id="dash-title-bienvenue">Bonjour</h1>
         <p class="dash-sub" id="dash-sub-role"></p>
       </div>
-      <button class="dash-settings-btn" onclick="window.location.href='/settings/'" title="Paramètres" aria-label="Paramètres">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M3.5 12 L6 12 M18 12 L20.5 12 M6.1 6.1 L7.8 7.8 M16.2 16.2 L17.9 17.9 M6.1 17.9 L7.8 16.2 M16.2 7.8 L17.9 6.1"/></svg>
-      </button>
     </div>
   </div>
 
