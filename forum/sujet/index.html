@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sujet — Forum Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/forum/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='/forum/'" style="display:flex">← Forum</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div class="forum-wrap">
+
+  <div id="sujet-guard-msg" class="forum-loading">Chargement…</div>
+
+  <div id="sujet-content" class="hidden">
+
+    <div class="forum-topic-detail" id="forum-topic-detail"></div>
+
+    <div id="admin-resolve-bar" class="hidden" style="margin:1rem 0"></div>
+
+    <div class="forum-replies-section">
+      <p class="forum-section-title" id="forum-replies-count">Réponses</p>
+      <div id="forum-replies-list"></div>
+    </div>
+
+    <div id="forum-reply-form" class="forum-reply-form">
+      <label class="field-label">Ta réponse</label>
+      <textarea class="field-input" id="forum-reply-content" rows="4" style="resize:vertical;font-family:sans-serif" placeholder="Écris ta réponse…"></textarea>
+      <button class="btn-primary" id="forum-reply-submit" style="width:100%;margin-top:0.6rem" onclick="doPostReply()">Répondre</button>
+    </div>
+
+    <div id="forum-locked-msg" class="forum-locked-msg hidden">
+      🔒 Ce sujet est marqué comme résolu — les réponses sont désormais fermées.
+    </div>
+
+  </div>
+
+</div>
+
+<div id="toast"></div>
+<script src="/forum/sujet/app.js"></script>
+</body>
+</html>
