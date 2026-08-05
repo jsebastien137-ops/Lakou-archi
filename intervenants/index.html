@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intervenants — Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+<link href="/intervenants/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- NAV minimale, comme /revue/ et /galerie/ -->
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='/'" style="display:flex">← Retour</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div class="intervenants-wrap">
+
+  <div class="intervenants-head">
+    <span class="intervenants-kicker">Corps enseignant</span>
+    <h1 class="intervenants-title">Intervenants</h1>
+    <p class="intervenants-sub">Les enseignant·e·s qui accompagnent les étudiant·e·s de Lakou Achitekti. Touche une carte pour découvrir leur galerie.</p>
+  </div>
+
+  <div id="intervenants-grid" class="intervenants-grid">
+    <p class="intervenants-loading">Chargement...</p>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+<script src="/intervenants/app.js"></script>
+</body>
+</html>
