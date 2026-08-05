@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contactez-nous — Lakou Achitekti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="/styles.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav id="nav">
+  <button class="btn-back" onclick="window.location.href='/'" style="display:flex">← Retour</button>
+  <div class="nav-logo">Lakou<span>.</span>Achitekti</div>
+  <div style="width:24px"></div>
+</nav>
+
+<div class="legal-page">
+  <div class="legal-body">
+
+    <p class="legal-eyebrow">Une question, un souci</p>
+    <h1 class="legal-title">Contactez-nous</h1>
+    <p style="font-size:0.85rem;color:var(--gris);margin-bottom:1.8rem">Ton message part directement à la bonne personne selon ta situation.</p>
+
+    <div id="contact-guest-fields" class="hidden">
+      <div class="form-group">
+        <label class="field-label">Ton nom</label>
+        <input type="text" id="f-name" class="field-input" placeholder="Nom complet">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Ton email</label>
+        <input type="email" id="f-email" class="field-input" placeholder="ton@email.com">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Catégorie</label>
+      <select id="f-category" class="field-input"></select>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Message</label>
+      <textarea id="f-message" class="field-input" rows="6" placeholder="Décris ta question ou ton souci..."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="form-btn" id="send-btn" style="width:100%" onclick="sendContactMessage()">Envoyer</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
