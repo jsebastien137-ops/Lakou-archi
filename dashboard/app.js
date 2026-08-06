@@ -36,7 +36,7 @@ var STATUS_LABEL_DASH = { draft: 'Brouillon', pending: 'En attente', approved: '
   var roleLabels = { student: 'étudiant·e', teacher: 'enseignant·e', admin: 'administrateur·rice', visitor: 'visiteur·se' };
 
   document.getElementById('dash-title-bienvenue').textContent = 'Bonjour, ' + nom;
-  document.getElementById('dash-sub-role').textContent = 'Connecté·e en tant que ' + (roleLabels[role] || role) + ' — Lakou Archi';
+  document.getElementById('dash-sub-role').textContent = 'Connecté·e en tant que ' + (roleLabels[role] || role) + ' — Lakou Achitekti';
 
   if (role === 'visitor') {
     // Visiteur : pas d'ateliers persos, pas de FAB, juste ses infos de base
