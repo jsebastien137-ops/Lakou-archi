@@ -36,7 +36,7 @@ var STATUS_LABEL_DASH = { draft: 'Brouillon', pending: 'En attente', approved: '
   var roleLabels = { student: 'étudiant·e', teacher: 'enseignant·e', admin: 'administrateur·rice', visitor: 'visiteur·se' };
 
   document.getElementById('dash-title-bienvenue').textContent = 'Bonjour, ' + nom;
-  document.getElementById('dash-sub-role').textContent = 'Connecté·e en tant que ' + (roleLabels[role] || role) + ' — Lakou Achitekti';
+  document.getElementById('dash-sub-role').textContent = 'Connecté·e en tant que ' + (roleLabels[role] || role) + ' — Lakou Archi';
 
   if (role === 'visitor') {
     // Visiteur : pas d'ateliers persos, pas de FAB, juste ses infos de base
@@ -202,7 +202,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var res = await sb.functions.invoke('send-dashboard-report');
     btn.disabled = false; btn.textContent = 'Envoyer un rapport';
     if (res.error) {
-      var detail = (res.error.context && res.error.context.error) || res.error.message || 'Erreur inconnue.';
+      var detail = res.error.message || 'Erreur inconnue.';
+      if (res.error.context && typeof res.error.context.json === 'function') {
+        try {
+          var body = await res.error.context.json();
+          if (body && body.error) detail = body.error;
+        } catch (e) { /* corps non-JSON, on garde le message par défaut */ }
+      }
       msg.textContent = "Échec de l'envoi : " + detail;
       msg.style.color = '#991b1b';
       return;
