@@ -3,10 +3,6 @@
    Page autonome : /galerie/index.html + /galerie/app.js
    ============================================================ */
 
-var SUPABASE_URL = 'https://qptnjgdfobznwmsguvyf.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwdG5qZ2Rmb2J6bndtc2d1dnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjA3MjIsImV4cCI6MjA5MzQ5NjcyMn0.QLfIITvc-AdWVLZHHghocNYyYyYvPxZZMAXhdl_4Bdo';
-var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 var currentUser = null;
 var currentProfile = null;
 var targetUserId = null;
@@ -41,7 +37,6 @@ function getTargetUserIdFromUrl() {
 async function loadGalerie() {
   var sessionRes = await sb.auth.getSession();
   if (!sessionRes.data || !sessionRes.data.session || !sessionRes.data.session.user) {
-    // Pas connecté → retour à l'accueil (qui gère la connexion)
     window.location.href = '../?login=1';
     return;
   }
@@ -95,9 +90,7 @@ function renderProfileHeader(profile) {
   }
 
   if (titleEl) titleEl.textContent = isOwnGallery ? 'Ma Galerie' : (profile ? profile.full_name : 'Galerie');
-
   if (schoolEl) schoolEl.textContent = profile && profile.school ? profile.school : '';
-
   if (bioEl) bioEl.textContent = profile && profile.bio ? profile.bio : '';
 
   if (badgeEl) {
@@ -119,7 +112,6 @@ function renderProfileHeader(profile) {
   }
 }
 
-/* ---------- Grille de projets (carte identique au reste du site) ---------- */
 function renderProjectGrid(projects) {
   var c = document.getElementById('galerie-grid');
   if (!c) return;
@@ -175,12 +167,10 @@ function renderProjectGrid(projects) {
   c.innerHTML = html;
 }
 
-/* ---------- Ouvrir le détail d'un projet ---------- */
 function openProject(id) {
   window.location.href = '/projet/?id=' + id;
 }
 
-/* ---------- Suppression rapide (identique à app.js) ---------- */
 async function deleteProject(id) {
   if (!confirm('Supprimer ce projet définitivement ?')) return;
   var res = await sb.from('projects').delete().eq('id', id);
@@ -189,11 +179,6 @@ async function deleteProject(id) {
   loadGalerie();
 }
 
-/* ============================================================
-   MODAL DE SOUMISSION — étape 1/2 (infos de base uniquement)
-   La suite (coupes, plans de masse, façades...) se fait sur la
-   page "edit-project" de l'app principale, après redirection.
-   ============================================================ */
 function openSubmitModal() {
   document.getElementById('submit-modal-overlay').classList.add('open');
 }
@@ -234,7 +219,6 @@ async function doCreateProjectFromModal() {
     }
 
     toast('Projet créé !');
-    // Étape 2 (coupes, plans de masse, façades, etc.) : page principale.
     window.location.href = '../?editProject=' + res.data.id;
   } catch (e) {
     showErr('submit-modal-error', 'Erreur : ' + e.message);
@@ -243,5 +227,4 @@ async function doCreateProjectFromModal() {
   }
 }
 
-/* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', loadGalerie);
