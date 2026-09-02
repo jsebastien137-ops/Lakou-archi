@@ -3,15 +3,10 @@
    Page autonome : /projets/index.html + /projets/app.js
    ============================================================ */
 
-var SUPABASE_URL = 'https://qptnjgdfobznwmsguvyf.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwdG5qZ2Rmb2J6bndtc2d1dnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjA3MjIsImV4cCI6MjA5MzQ5NjcyMn0.QLfIITvc-AdWVLZHHghocNYyYyYvPxZZMAXhdl_4Bdo';
-var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 var currentUser = null;
 var currentProfile = null;
 var allPublicProjects = [];
 
-/* ---------- Helpers (extraits de app.js) ---------- */
 function toast(msg, type) {
   if (!type) type = 'success';
   var c = document.getElementById('toast');
@@ -30,7 +25,6 @@ function hideErr(id) {
   if (el) el.classList.add('hidden');
 }
 
-/* ---------- Session (facultative : la page reste publique) ---------- */
 async function initSession() {
   var sessionRes = await sb.auth.getSession();
   if (sessionRes.data && sessionRes.data.session && sessionRes.data.session.user) {
@@ -38,12 +32,10 @@ async function initSession() {
     var profRes = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
     currentProfile = profRes.data || { role: 'student' };
   }
-  // Le bouton + n'est proposé qu'aux étudiants connectés (comme sur le tableau de bord)
   var fab = document.getElementById('fab-new-project');
   if (fab) fab.classList.toggle('hidden', !(currentUser && currentProfile && currentProfile.role === 'student'));
 }
 
-/* ---------- Chargement des projets approuvés ---------- */
 async function loadPublicProjects() {
   var grid = document.getElementById('projets-grid');
   if (grid) grid.innerHTML = '<p style="color:var(--gris);font-family:sans-serif;font-size:0.85rem">Chargement...</p>';
@@ -57,7 +49,6 @@ async function loadPublicProjects() {
   renderGrid(allPublicProjects);
 }
 
-/* ---------- Filtre par niveau (L1, L2, ...) ---------- */
 function filterProjects(level, btn) {
   var btns = document.querySelectorAll('#projets-filters .filter-btn');
   for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
@@ -66,7 +57,6 @@ function filterProjects(level, btn) {
   renderGrid(filtered);
 }
 
-/* ---------- Rendu de la grille (carte avec avatar + nom de l'uploader) ---------- */
 function renderGrid(projects) {
   var c = document.getElementById('projets-grid');
   if (!c) return;
@@ -124,7 +114,6 @@ function renderGrid(projects) {
   c.innerHTML = html;
 }
 
-/* ---------- Navigation vers la galerie d'un étudiant / la fiche projet ---------- */
 function openStudentGallery(userId) {
   window.location.href = '../galerie/?user=' + userId;
 }
@@ -132,9 +121,6 @@ function openProject(id) {
   window.location.href = '/projet/?id=' + id;
 }
 
-/* ============================================================
-   MODAL DE SOUMISSION — étape 1/2 (identique à /galerie/app.js)
-   ============================================================ */
 function openSubmitModal() {
   if (!currentUser) { window.location.href = '../?login=1'; return; }
   document.getElementById('submit-modal-overlay').classList.add('open');
@@ -176,7 +162,6 @@ async function doCreateProjectFromModal() {
     }
 
     toast('Projet créé !');
-    // Étape 2 (coupes, plans de masse, façades, etc.) : page principale.
     window.location.href = '/projet/editer.html?id=' + res.data.id;
   } catch (e) {
     showErr('submit-modal-error', 'Erreur : ' + e.message);
@@ -185,7 +170,6 @@ async function doCreateProjectFromModal() {
   }
 }
 
-/* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', async function() {
   await initSession();
   loadPublicProjects();
