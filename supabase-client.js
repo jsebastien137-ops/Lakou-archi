@@ -5,16 +5,9 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 window.addEventListener('pageshow', function(e) {
   if (e.persisted) location.reload();
 });
-
 /* --- BANDEAU DE DIAGNOSTIC TEMPORAIRE --- */
-sb.auth.onAuthStateChange(function(event, session) {
-  var b = document.querySelector('div[style*="position:fixed"][style*="bottom:0"]');
-  var line = '\n>>> AUTH EVENT: ' + event + (session ? ' (session OK)' : ' (session NULLE)');
-  if (b) b.textContent += line;
-  console.log(line);
-});
-
 (function() {
+  var STORAGE_KEY = 'sb-qptnjgdfobznwmsguvyf-auth-token';
   var banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999999;background:#111;color:#0f0;font-family:monospace;font-size:10px;padding:6px;max-height:32vh;overflow-y:auto;white-space:pre-wrap;';
   banner.textContent = '[debug] page: ' + location.pathname;
@@ -24,12 +17,35 @@ sb.auth.onAuthStateChange(function(event, session) {
   }
   attach();
 
+  function log(msg, color) {
+    var line = document.createElement('div');
+    if (color) line.style.color = color;
+    line.textContent = msg;
+    banner.appendChild(line);
+    banner.scrollTop = banner.scrollHeight;
+  }
+
+  function storageState() {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? ('présent, ' + raw.length + ' car.') : 'ABSENT';
+  }
+
   var origGetSession = sb.auth.getSession.bind(sb.auth);
   sb.auth.getSession = function() {
     return origGetSession().then(function(res) {
       var u = res.data && res.data.session && res.data.session.user;
-      banner.textContent += '\ngetSession → ' + (u ? 'OK (' + u.email + ')' : 'AUCUNE SESSION');
+      log('getSession → ' + (u ? 'OK (' + u.email + ')' : 'AUCUNE SESSION') + ' | storage: ' + storageState());
       return res;
     });
   };
+
+  sb.auth.onAuthStateChange(function(event, session) {
+    log('>>> AUTH EVENT: ' + event + (session ? ' (OK)' : ' (NULLE)') + ' | storage: ' + storageState(), '#ffcc00');
+  });
+
+  window.addEventListener('storage', function(e) {
+    if (e.key === STORAGE_KEY) {
+      log('>>> MODIFIÉ PAR UN AUTRE ONGLET ! newValue: ' + (e.newValue ? 'présent' : 'SUPPRIMÉ'), '#ff5555');
+    }
+  });
 })();
