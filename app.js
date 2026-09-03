@@ -2543,7 +2543,18 @@ function closeAccessModal() {
   if (modal) modal.style.display = 'none';
 }
 
-function requireAuth(callback, visitorAllowed) {
+async function requireAuth(callback, visitorAllowed) {
+  if (!currentUser) {
+    var sessionRes = await sb.auth.getSession();
+    var user = sessionRes.data && sessionRes.data.session && sessionRes.data.session.user;
+    if (user) {
+      currentUser = user;
+      if (!currentProfile) {
+        var pRes = await sb.from('profiles').select('*').eq('id', user.id).single();
+        currentProfile = pRes.data || { role: 'student', id: user.id };
+      }
+    }
+  }
   if (currentUser) {
     var role = currentProfile ? currentProfile.role : 'student';
     if (!visitorAllowed && role === 'visitor') {
