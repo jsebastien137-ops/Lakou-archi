@@ -26,3 +26,9 @@ window.addEventListener('pageshow', function(e) {
     });
   };
 })();
+sb.auth.onAuthStateChange(function(event, session) {
+  var b = document.querySelector('div[style*="position:fixed"][style*="bottom:0"]');
+  var line = '\n>>> AUTH EVENT: ' + event + (session ? ' (session OK)' : ' (session NULLE)');
+  if (b) b.textContent += line;
+  console.log(line);
+});
