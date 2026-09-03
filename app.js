@@ -2946,16 +2946,18 @@ var compressImageLivret = function(file, maxDim, quality) {
     reader.readAsDataURL(file);
   });
 };
-function handleVisitorMenuClick(e, page) {
-  e.preventDefault();
-  var role = currentProfile ? currentProfile.role : 'visitor';
-  if (role === 'visitor') {
-    toast('Cette section est réservée aux membres académiques.', 'error');
-    return;
+async function handleAtelierCta() {
+  if (!currentUser) {
+    var sessionRes = await sb.auth.getSession();
+    var user = sessionRes.data && sessionRes.data.session && sessionRes.data.session.user;
+    if (user) {
+      currentUser = user;
+      if (!currentProfile) {
+        var pRes = await sb.from('profiles').select('*').eq('id', user.id).single();
+        currentProfile = pRes.data || { role: 'student', id: user.id };
+      }
+    }
   }
-  window.location.href = '/' + page + '/';
-}
-function handleAtelierCta() {
   if (!currentUser) { window.location.href = '/login/'; return; }
   var role = currentProfile ? currentProfile.role : 'visitor';
   if (role === 'visitor') {
@@ -2963,6 +2965,25 @@ function handleAtelierCta() {
     return;
   }
   window.location.href = '/explorer-ateliers/';
+}
+
+async function handleVisitorMenuClick(e, page) {
+  e.preventDefault();
+  if (!currentProfile) {
+    var sessionRes = await sb.auth.getSession();
+    var user = sessionRes.data && sessionRes.data.session && sessionRes.data.session.user;
+    if (user) {
+      currentUser = user;
+      var pRes = await sb.from('profiles').select('*').eq('id', user.id).single();
+      currentProfile = pRes.data || { role: 'student', id: user.id };
+    }
+  }
+  var role = currentProfile ? currentProfile.role : 'visitor';
+  if (role === 'visitor') {
+    toast('Cette section est réservée aux membres académiques.', 'error');
+    return;
+  }
+  window.location.href = '/' + page + '/';
 }
 function showConfirmModal() {
   var modal = document.getElementById('modal-confirm-email');
