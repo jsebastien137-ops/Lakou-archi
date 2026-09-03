@@ -7,6 +7,13 @@ window.addEventListener('pageshow', function(e) {
 });
 
 /* --- BANDEAU DE DIAGNOSTIC TEMPORAIRE --- */
+sb.auth.onAuthStateChange(function(event, session) {
+  var b = document.querySelector('div[style*="position:fixed"][style*="bottom:0"]');
+  var line = '\n>>> AUTH EVENT: ' + event + (session ? ' (session OK)' : ' (session NULLE)');
+  if (b) b.textContent += line;
+  console.log(line);
+});
+
 (function() {
   var banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999999;background:#111;color:#0f0;font-family:monospace;font-size:10px;padding:6px;max-height:32vh;overflow-y:auto;white-space:pre-wrap;';
@@ -26,9 +33,3 @@ window.addEventListener('pageshow', function(e) {
     });
   };
 })();
-sb.auth.onAuthStateChange(function(event, session) {
-  var b = document.querySelector('div[style*="position:fixed"][style*="bottom:0"]');
-  var line = '\n>>> AUTH EVENT: ' + event + (session ? ' (session OK)' : ' (session NULLE)');
-  if (b) b.textContent += line;
-  console.log(line);
-});
